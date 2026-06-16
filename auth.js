@@ -149,9 +149,9 @@ authForm.addEventListener("submit", async (event) => {
   const password = document.getElementById("password").value;
   if (!email || !password) { setAuthMessage("Bitte E-Mail und Passwort eingeben.", true); return; }
   const { data, error } = await db.auth.signInWithPassword({ email, password });
-  if (error) { setMessage(error.message, true); return; }
-  if (!data?.session?.user) { setMessage("Login war erfolgreich, aber es wurde keine Session gefunden.", true); return; }
-  setMessage("");
+  if (error) { setAuthMessage(error.message, true); return; }
+  if (!data?.session?.user) { setAuthMessage("Login war erfolgreich, aber es wurde keine Session gefunden.", true); return; }
+  setAuthMessage("");
 });
 
 // ============================================================
@@ -173,27 +173,31 @@ registerForm.addEventListener("submit", async (event) => {
   const first_name   = document.getElementById("reg-first-name").value.trim();
   const last_name    = document.getElementById("reg-last-name").value.trim();
   const street       = document.getElementById("reg-street").value.trim();
+  const house_number = document.getElementById("reg-house").value.trim();
   const postal_code  = document.getElementById("reg-postal").value.trim();
   const city         = document.getElementById("reg-city").value.trim();
   const account_type = document.querySelector("input[name='account_type']:checked")?.value || "person";
 
-  if (!email || !password || !first_name || !last_name || !street || !postal_code || !city) {
+  if (!email || !password || !first_name || !last_name || !street || !house_number || !postal_code || !city) {
     setRegMessage("Bitte alle Pflichtfelder ausfüllen.", true);
     return;
   }
 
-  const metadata = { first_name, last_name, account_type, street, postal_code, city };
+  const metadata = { first_name, last_name, account_type, street, house_number, postal_code, city };
 
   if (account_type === "organization") {
-    const organization_name  = document.getElementById("reg-org-name").value.trim();
-    const organization_city  = document.getElementById("reg-org-city").value.trim();
-    const register_number    = document.getElementById("reg-org-register").value.trim();
-    const organization_email = document.getElementById("reg-org-email").value.trim();
-    if (!organization_name || !organization_city || !register_number || !organization_email) {
+    const organization_name          = document.getElementById("reg-org-name").value.trim();
+    const organization_street        = document.getElementById("reg-org-street").value.trim();
+    const organization_house_number  = document.getElementById("reg-org-house").value.trim();
+    const organization_city          = document.getElementById("reg-org-city").value.trim();
+    const organization_postal_code   = document.getElementById("reg-org-postal").value.trim();
+    const register_number            = document.getElementById("reg-org-register").value.trim();
+    const organization_email         = document.getElementById("reg-org-email").value.trim();
+    if (!organization_name || !organization_street || !organization_house_number || !organization_house_number || !organization_city || !organization_postal_code || !register_number || !organization_email) {
       setRegMessage("Bitte alle Vereinsdaten ausfüllen.", true);
       return;
     }
-    Object.assign(metadata, { organization_name, organization_city, register_number, organization_email });
+    Object.assign(metadata, { organization_name, organization_street, organization_house_number, organization_house_number, organization_city, organization_postal_code, register_number, organization_email });
   }
 
   const submitBtn = document.getElementById("register-submit-btn");
@@ -238,22 +242,4 @@ logoutBtn.addEventListener("click", async () => {
   const { error } = await db.auth.signOut();
   if (error) { setAuthMessage(`Fehler beim Abmelden: ${error.message}`, true); return; }
   showLoginView();
-});
-
-// ============================================================
-// USER MENU DROPDOWN TOGGLE
-// ============================================================
-
-userMenuBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  const isOpen = userDropdown.classList.contains("user-dropdown--open");
-  userDropdown.classList.toggle("user-dropdown--open", !isOpen);
-  userMenuBtn.setAttribute("aria-expanded", String(!isOpen));
-  userDropdown.setAttribute("aria-hidden", String(isOpen));
-});
-
-document.addEventListener("click", () => {
-  userDropdown.classList.remove("user-dropdown--open");
-  userMenuBtn.setAttribute("aria-expanded", "false");
-  userDropdown.setAttribute("aria-hidden", "true");
 });
