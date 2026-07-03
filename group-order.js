@@ -399,7 +399,7 @@ function renderPanelContent() {
         <button type="button" class="go-btn-primary" id="go-create-submit-btn" disabled style="opacity:.4;cursor:not-allowed;">Sammelbestellung erstellen</button>
       </div>
     </div>
-    <p id="go-banner-error" style="margin-top:8px;font-size:.8125rem;color:#ffaab4;"></p>`;
+    <p id="go-banner-error" style="margin-top:8px;font-size:.8125rem;color:var(--danger-text);"></p>`;
 
   body.innerHTML = html;
 

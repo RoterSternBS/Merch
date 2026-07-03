@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Vereinsshop und Sammelbestellungen für Vereinsmitglieder.">
+  <meta name="theme-color" content="#0d0819">
   <title>Vereinsbestellung</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -202,36 +204,36 @@
             <label for="reg-password" class="form-label">Passwort</label>
             <input type="password" id="reg-password" name="password"
                    placeholder="Mindestens 6 Zeichen"
-                   required autocomplete="new-password">
+                   required minlength="6" autocomplete="new-password">
           </div>
 
           <!-- Adresse -->
+          <div class="form-row form-row--address">
             <div class="form-field">
               <label for="reg-street" class="form-label">Straße</label>
               <input type="text" id="reg-street" name="street"
                      placeholder="Musterstraße" required autocomplete="street-address">
             </div>
-            
             <div class="form-field">
-              <label for="reg-house" class="form-label">Hausnummer</label>
+              <label for="reg-house" class="form-label">Hausnr.</label>
               <input type="text" id="reg-house" name="house_number"
                      placeholder="12" required autocomplete="off">
             </div>
-            
-            <div class="form-row">
-              <div class="form-field form-field--narrow">
-                <label for="reg-postal" class="form-label">PLZ</label>
-                <input type="text" id="reg-postal" name="postal_code"
-                       placeholder="13121" required autocomplete="postal-code"
-                       inputmode="numeric" maxlength="5">
-              </div>
-              <div class="form-field">
-                <label for="reg-city" class="form-label">Ort</label>
-                <input type="text" id="reg-city" name="city"
-                       placeholder="Musterstadt" required autocomplete="address-level2">
-              </div>
+          </div>
+
+          <div class="form-row form-row--postal">
+            <div class="form-field">
+              <label for="reg-postal" class="form-label">PLZ</label>
+              <input type="text" id="reg-postal" name="postal_code"
+                     placeholder="13121" required autocomplete="postal-code"
+                     inputmode="numeric" maxlength="5">
             </div>
-           
+            <div class="form-field">
+              <label for="reg-city" class="form-label">Ort</label>
+              <input type="text" id="reg-city" name="city"
+                     placeholder="Musterstadt" required autocomplete="address-level2">
+            </div>
+          </div>
 
           <!-- Organisationsdaten (nur wenn account_type = organization) -->
           <div id="org-fields" class="org-fields hidden">
@@ -241,30 +243,32 @@
               <label for="reg-org-name" class="form-label">Vereinsname</label>
               <input type="text" id="reg-org-name" name="organization_name"
                      placeholder="Musterverein e.V." autocomplete="organization">
-              
-                <div class="form-field">
-                  <label for="reg-org-street" class="form-label">Vereinssitz (Straße)</label>
-                  <input type="text" id="reg-org-street" name="organization_street" placeholder="Musterweg">
-                </div>
-                
-                <div class="form-field">
-                  <label for="reg-org-house" class="form-label">Hausnummer</label>
-                  <input type="text" id="reg-org-house" name="organization_house_number" placeholder="161">
-                </div>
+            </div>
 
-                </div>
-            <div class="form-field">
-              <label for="reg-org-postal" class="form-label">Vereinssitz (PLZ)</label>
-              <input type="text" id="reg-org-postal" name="organization_postal"
-                     placeholder="13121">   
-                   
+            <div class="form-row form-row--address">
+              <div class="form-field">
+                <label for="reg-org-street" class="form-label">Vereinssitz (Straße)</label>
+                <input type="text" id="reg-org-street" name="organization_street" placeholder="Musterweg">
+              </div>
+              <div class="form-field">
+                <label for="reg-org-house" class="form-label">Hausnr.</label>
+                <input type="text" id="reg-org-house" name="organization_house_number" placeholder="161">
+              </div>
             </div>
-            <div class="form-field">
-              <label for="reg-org-city" class="form-label">Vereinssitz (Ort)</label>
-              <input type="text" id="reg-org-city" name="organization_city"
-                     placeholder="Musterstadt">
-              
+
+            <div class="form-row form-row--postal">
+              <div class="form-field">
+                <label for="reg-org-postal" class="form-label">PLZ</label>
+                <input type="text" id="reg-org-postal" name="organization_postal"
+                       placeholder="13121" inputmode="numeric" maxlength="5">
+              </div>
+              <div class="form-field">
+                <label for="reg-org-city" class="form-label">Ort</label>
+                <input type="text" id="reg-org-city" name="organization_city"
+                       placeholder="Musterstadt">
+              </div>
             </div>
+
             <div class="form-field">
               <label for="reg-org-register" class="form-label">Vereinsregisternummer</label>
               <input type="text" id="reg-org-register" name="register_number"
@@ -548,16 +552,17 @@
         </button>
       </div>
       <form id="address-form" novalidate>
-        <div class="address-form-group">
-          <label class="form-label" for="address-street">Straße</label>
-          <input id="address-street" class="form-input" type="text"
-                 placeholder="Musterstraße" autocomplete="street-address" required />
-          
-              <div class="address-form-group">
-          <label class="form-label" for="address-house">Hausnummer</label>
-          <input id="address-house" class="form-input" type="text"
-                 placeholder="1312" autocomplete="house-number" required />
-
+        <div class="address-form-row address-form-row--street">
+          <div class="address-form-group">
+            <label class="form-label" for="address-street">Straße</label>
+            <input id="address-street" class="form-input" type="text"
+                   placeholder="Musterstraße" autocomplete="street-address" required />
+          </div>
+          <div class="address-form-group">
+            <label class="form-label" for="address-house">Hausnr.</label>
+            <input id="address-house" class="form-input" type="text"
+                   placeholder="12" autocomplete="off" required />
+          </div>
         </div>
         <div class="address-form-row">
           <div class="address-form-group address-form-group--postal">

@@ -46,12 +46,12 @@ const userDropdown = document.getElementById("user-dropdown");
 
 function setAuthMessage(text, isError = false) {
   authMessage.textContent = text;
-  authMessage.style.color = isError ? "#a12c45" : "#666";
+  authMessage.style.color = isError ? "var(--danger-text)" : "var(--muted)";
 }
 
 function setRegMessage(text, isError = false) {
   registerMsg.textContent = text;
-  registerMsg.style.color = isError ? "#a12c45" : "#666";
+  registerMsg.style.color = isError ? "var(--danger-text)" : "var(--muted)";
 }
 
 async function getCurrentUser() {
@@ -148,10 +148,19 @@ authForm.addEventListener("submit", async (event) => {
   const email    = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   if (!email || !password) { setAuthMessage("Bitte E-Mail und Passwort eingeben.", true); return; }
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
-  if (error) { setAuthMessage(error.message, true); return; }
-  if (!data?.session?.user) { setAuthMessage("Login war erfolgreich, aber es wurde keine Session gefunden.", true); return; }
-  setAuthMessage("");
+
+  const loginBtn = document.getElementById("login-btn");
+  loginBtn.disabled = true;
+  loginBtn.textContent = "Wird angemeldet…";
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) { setAuthMessage(error.message, true); return; }
+    if (!data?.session?.user) { setAuthMessage("Login war erfolgreich, aber es wurde keine Session gefunden.", true); return; }
+    setAuthMessage("");
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.textContent = "Einloggen";
+  }
 });
 
 // ============================================================
@@ -193,11 +202,11 @@ registerForm.addEventListener("submit", async (event) => {
     const organization_postal_code   = document.getElementById("reg-org-postal").value.trim();
     const register_number            = document.getElementById("reg-org-register").value.trim();
     const organization_email         = document.getElementById("reg-org-email").value.trim();
-    if (!organization_name || !organization_street || !organization_house_number || !organization_house_number || !organization_city || !organization_postal_code || !register_number || !organization_email) {
+    if (!organization_name || !organization_street || !organization_house_number || !organization_city || !organization_postal_code || !register_number || !organization_email) {
       setRegMessage("Bitte alle Vereinsdaten ausfüllen.", true);
       return;
     }
-    Object.assign(metadata, { organization_name, organization_street, organization_house_number, organization_house_number, organization_city, organization_postal_code, register_number, organization_email });
+    Object.assign(metadata, { organization_name, organization_street, organization_house_number, organization_city, organization_postal_code, register_number, organization_email });
   }
 
   const submitBtn = document.getElementById("register-submit-btn");
@@ -231,7 +240,7 @@ registerForm.addEventListener("submit", async (event) => {
   setTimeout(() => {
     showLoginView();
     setAuthMessage("Registrierung erfolgreich. Bitte E-Mail bestätigen.");
-  }, 500);
+  }, 2500);
 });
 
 // ============================================================

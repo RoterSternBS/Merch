@@ -308,14 +308,19 @@ document.addEventListener("keydown", e => {
 // FILTER LOGIC
 // ============================================================
 
+// Produkt-Quelle für Chips: im GO-Modus nur Produkte des Lieferanten
+function currentChipSource() {
+  return window.__goSupplierFilter
+    ? allProducts.filter(p => p.supplier_id === window.__goSupplierFilter)
+    : allProducts;
+}
+
 function buildFilterChips(products) {
   const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
   const suppliers  = [...new Set(products.map(p => p.suppliers?.name).filter(Boolean))].sort();
   const brands     = [...new Set(products.map(p => p.brands?.name).filter(Boolean))].sort();
 
-  const sourceProducts = window.__goSupplierFilter
-    ? allProducts.filter(p => p.supplier_id === window.__goSupplierFilter)
-    : allProducts;
+  const sourceProducts = currentChipSource();
 
   renderChips("filter-chips-category",        categories, "category", sourceProducts);
   renderChips("filter-chips-supplier",         suppliers,  "supplier",  sourceProducts);
@@ -404,7 +409,7 @@ function updateFilterUI() {
     tag.innerHTML = `${escapeHtml(label)}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
     tag.addEventListener("click", () => {
       activeFilters[key].delete(label);
-      buildFilterChips(sourceProducts);
+      buildFilterChips(currentChipSource());
       applyFilters();
     });
     activeFilterBar.appendChild(tag);
@@ -569,11 +574,11 @@ async function removeFromGoCart(goCartItemId) {
 function setMessage(text, isError = false) {
   if (orderMessage) {
     orderMessage.textContent = text;
-    orderMessage.style.color = isError ? "#a12c45" : "#666";
+    orderMessage.style.color = isError ? "var(--danger-text)" : "var(--muted)";
   }
   if (cartDrawerMsg) {
     cartDrawerMsg.textContent = text;
-    cartDrawerMsg.style.color = isError ? "#a12c45" : "#666";
+    cartDrawerMsg.style.color = isError ? "var(--danger-text)" : "var(--muted)";
   }
 }
 const setOrderMessage = setMessage; //in checkout.js als setOrderMessage 
@@ -633,7 +638,7 @@ function renderProducts(products) {
     const safeId   = escapeHtml(String(product.id));
 
     const sizesHtml = sizes.map(size => `
-      <button type="button" class="size-btn"
+      <button type="button" class="size-btn" aria-pressed="false"
         data-size-select="${safeId}"
         data-size-id="${escapeHtml(String(size.id))}"
         data-size-type="${escapeHtml(sizeType)}"
@@ -643,8 +648,8 @@ function renderProducts(products) {
 
     return `<article class="product-card" data-product-card="${safeId}">
       <div class="product-image-wrap">
-        <img class="product-image product-image-primary" src="${firstImage}"  alt="${safeName}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}';">
-        <img class="product-image product-image-hover"   src="${secondImage}" alt="${safeName}" loading="lazy" onerror="this.onerror=null;this.src='${firstImage}';">
+        <img class="product-image product-image-primary" src="${escapeHtml(firstImage)}"  alt="${safeName}" loading="lazy">
+        <img class="product-image product-image-hover"   src="${escapeHtml(secondImage)}" alt="" loading="lazy">
       </div>
       <div class="product-info">
         <h3 class="product-title">${safeName}</h3>
@@ -663,6 +668,16 @@ function renderProducts(products) {
     </article>`;
   }).join("");
 
+  // Bild-Fallback ohne Inline-Handler (Data-URI in onerror-Attributen
+  // bricht an den enthaltenen Anführungszeichen)
+  productsList.querySelectorAll("img.product-image").forEach(img => {
+    img.addEventListener("error", () => {
+      if (img.dataset.fallbackApplied) return;
+      img.dataset.fallbackApplied = "1";
+      img.src = FALLBACK_IMAGE;
+    });
+  });
+
   document.querySelectorAll("[data-size-select]").forEach(button => {
     button.addEventListener("click", () => {
       const productId = button.getAttribute("data-size-select");
@@ -671,8 +686,12 @@ function renderProducts(products) {
       const card      = document.querySelector(`[data-product-card="${productId}"]`);
       const panel     = document.querySelector(`[data-purchase-panel="${productId}"]`);
       if (!card || !panel) return;
-      card.querySelectorAll("[data-size-select]").forEach(b => b.classList.remove("size-btn-active"));
+      card.querySelectorAll("[data-size-select]").forEach(b => {
+        b.classList.remove("size-btn-active");
+        b.setAttribute("aria-pressed", "false");
+      });
       button.classList.add("size-btn-active");
+      button.setAttribute("aria-pressed", "true");
       card.setAttribute("data-selected-size-id", sizeId);
       card.setAttribute("data-selected-size-type", sizeType);
       panel.classList.remove("hidden");
@@ -704,7 +723,10 @@ function renderProducts(products) {
       if (hasSizeSelector) {
         card.removeAttribute("data-selected-size-id");
         card.removeAttribute("data-selected-size-type");
-        card.querySelectorAll("[data-size-select]").forEach(b => b.classList.remove("size-btn-active"));
+        card.querySelectorAll("[data-size-select]").forEach(b => {
+          b.classList.remove("size-btn-active");
+          b.setAttribute("aria-pressed", "false");
+        });
         document.querySelector(`[data-purchase-panel="${productId}"]`)?.classList.add("hidden");
       }
     });
@@ -715,7 +737,21 @@ function renderProducts(products) {
 // LOAD PRODUCTS
 // ============================================================
 
+// Skeleton-Kacheln, solange die Produkte aus Supabase laden
+function renderProductSkeletons(count = 8) {
+  productsEmpty.classList.add("hidden");
+  productsList.innerHTML = Array.from({ length: count }, () => `
+    <div class="product-card product-card--skeleton" aria-hidden="true">
+      <div class="skeleton skeleton-image"></div>
+      <div class="product-info">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line skeleton-line--short"></div>
+      </div>
+    </div>`).join("");
+}
+
 async function loadProducts() {
+  renderProductSkeletons();
   const { data, error } = await db
     .from("products")
     .select(`

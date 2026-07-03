@@ -21,8 +21,8 @@
   justify-content: space-between;
   gap: 12px;
   padding: 8px 20px;
-  background: rgba(1, 105, 111, 0.12);
-  border-bottom: 1px solid rgba(1, 105, 111, 0.25);
+  background: rgba(42, 51, 152, 0.12);
+  border-bottom: 1px solid rgba(42, 51, 152, 0.25);
   font-size: 13px;
   color: var(--text);
   flex-wrap: wrap;
@@ -41,9 +41,9 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #01b0b8;
+  background: var(--go-accent);
   flex-shrink: 0;
-  box-shadow: 0 0 6px rgba(1,176,184,.6);
+  box-shadow: 0 0 6px rgba(143,157,255,.6);
   animation: go-pulse 2s ease-in-out infinite;
 }
 
@@ -60,7 +60,7 @@
 }
 
 .go-open-btn {
-  background: #01696f;
+  background: var(--go-accent-btn);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -73,13 +73,13 @@
   transition: background 140ms ease;
   font-family: inherit;
 }
-.go-open-btn:hover  { background: #018a92; transform: none; }
+.go-open-btn:hover  { background: var(--go-accent-btn-hover); transform: none; }
 .go-open-btn:active { transform: scale(.96); opacity: 1; }
 
 .go-create-btn {
   background: none;
-  border: 1.5px solid rgba(1,105,111,.5);
-  color: #01b0b8;
+  border: 1.5px solid rgba(42,51,152,.5);
+  color: var(--go-accent);
   border-radius: 6px;
   padding: 6px 14px;
   font-size: 12px;
@@ -90,7 +90,7 @@
   min-height: 32px;
   white-space: nowrap;
 }
-.go-create-btn:hover  { background: rgba(1,105,111,.15); border-color: #01696f; color: #fff; transform: none; }
+.go-create-btn:hover  { background: rgba(42,51,152,.15); border-color: var(--go-accent-btn); color: #fff; transform: none; }
 .go-create-btn:active { transform: scale(.96); opacity: 1; }
 
 /* ============================================================
@@ -103,8 +103,8 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 20px;
-  background: linear-gradient(90deg, rgba(1,176,184,.18) 0%, rgba(1,105,111,.12) 100%);
-  border-bottom: 2px solid #01b0b8;
+  background: linear-gradient(90deg, rgba(143,157,255,.18) 0%, rgba(42,51,152,.12) 100%);
+  border-bottom: 2px solid var(--go-accent);
   font-size: 13px;
   flex-wrap: wrap;
 }
@@ -121,18 +121,24 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #01b0b8;
+  background: var(--go-accent);
   flex-shrink: 0;
-  box-shadow: 0 0 0 3px rgba(1,176,184,.25);
+  box-shadow: 0 0 0 3px rgba(143,157,255,.25);
   animation: go-pulse 1.5s ease-in-out infinite;
 }
 
 .go-signal-label {
-  font-size: 20px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .07em;
-  color: #01b0b8;
+  color: var(--go-accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .go-signal-label { font-size: 18px; }
 }
 
 .go-signal-supplier {
@@ -142,12 +148,13 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .go-signal-leave-btn {
   background: rgba(224,85,105,.12);
   border: 1px solid rgba(224,85,105,.35);
-  color: #ffaab4;
+  color: var(--danger-text);
   border-radius: 6px;
   padding: 6px 14px;
   font-size: 12px;
@@ -171,8 +178,8 @@
   justify-content: center;
   align-items: center;
   padding: 20px 24px;
-  background: rgba(1, 176, 184, 0.08);   /* ← heller Teal-Schimmer, sichtbar im Dark Mode */
-  border-bottom: 1px solid rgba(1, 176, 184, 0.2);  /* ← passende Border statt --border */
+  background: rgba(143, 157, 255, 0.08);   /* ← heller Teal-Schimmer, sichtbar im Dark Mode */
+  border-bottom: 1px solid rgba(143, 157, 255, 0.2);  /* ← passende Border statt --border */
 }
 
 .go-supplier-logo-img {
@@ -374,7 +381,7 @@
 ============================================================ */
 
 .go-join-btn {
-  background: #01696f;
+  background: var(--go-accent-btn);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -387,19 +394,19 @@
   transition: background 140ms ease;
   font-family: inherit;
 }
-.go-join-btn:hover  { background: #018a92; transform: none; }
+.go-join-btn:hover  { background: var(--go-accent-btn-hover); transform: none; }
 .go-join-btn:active { transform: scale(.96); opacity: 1; }
 .go-join-btn.go-join-btn--active {
-  background: rgba(1,176,184,.15);
-  color: #01b0b8;
-  border: 1px solid rgba(1,176,184,.35);
+  background: rgba(143,157,255,.15);
+  color: var(--go-accent);
+  border: 1px solid rgba(143,157,255,.35);
 }
 .go-join-btn.go-join-btn--goto {
-  background: rgba(1,176,184,.1);
-  color: #01b0b8;
-  border: 1px solid rgba(1,176,184,.3);
+  background: rgba(143,157,255,.1);
+  color: var(--go-accent);
+  border: 1px solid rgba(143,157,255,.3);
 }
-.go-join-btn.go-join-btn--goto:hover { background: rgba(1,176,184,.2); }
+.go-join-btn.go-join-btn--goto:hover { background: rgba(143,157,255,.2); }
 
 .go-undo-btn {
   background: none;
@@ -415,7 +422,7 @@
   font-family: inherit;
   transition: background 140ms ease, color 140ms ease;
 }
-.go-undo-btn:hover  { background: rgba(224,85,105,.1); color: #ffaab4; border-color: rgba(224,85,105,.3); transform: none; }
+.go-undo-btn:hover  { background: rgba(224,85,105,.1); color: var(--danger-text); border-color: rgba(224,85,105,.3); transform: none; }
 .go-undo-btn:active { transform: scale(.96); opacity: 1; }
 
 .go-edit-btn {
@@ -461,7 +468,7 @@
 }
 
 .go-label { display: block; font-size: .8125rem; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
-.go-required { color: var(--accent); }
+.go-required { color: var(--accent-text); }
 
 .go-input {
   display: block;
@@ -477,9 +484,9 @@
   outline: none;
   min-height: 0;
 }
-.go-input:focus { border-color: #01696f; box-shadow: 0 0 0 3px rgba(1,105,111,.15); }
+.go-input:focus { border-color: var(--go-accent-btn); box-shadow: 0 0 0 3px rgba(42,51,152,.15); }
 
-.go-error { font-size: .8125rem; color: #ffaab4; min-height: 16px; margin: 0; }
+.go-error { font-size: .8125rem; color: var(--danger-text); min-height: 16px; margin: 0; }
 .go-value-readonly { font-size: .9375rem; font-weight: 600; color: var(--text); padding: 8px 0; margin: 0; }
 
 /* ============================================================
@@ -560,9 +567,9 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(1,176,184,.15);
-  border: 2px solid rgba(1,176,184,.4);
-  color: #01b0b8;
+  background: rgba(143,157,255,.15);
+  border: 2px solid rgba(143,157,255,.4);
+  color: var(--go-accent);
   font-size: 22px;
   font-weight: 700;
   display: flex;
@@ -595,8 +602,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(1,176,184,.1);
-  border: 1px solid rgba(1,176,184,.3);
+  background: rgba(143,157,255,.1);
+  border: 1px solid rgba(143,157,255,.3);
   border-radius: 20px;
   padding: 8px 16px 8px 14px;
 }
@@ -611,7 +618,7 @@
 .checkout-supplier-name {
   font-size: 13px;
   font-weight: 700;
-  color: #01b0b8;
+  color: var(--go-accent);
 }
 
 /* ============================================================
@@ -620,7 +627,7 @@
 
 #go-submitted-wrap {
   margin-top: 24px;
-  border: 1px solid rgba(1,176,184,.25);
+  border: 1px solid rgba(143,157,255,.25);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -631,17 +638,17 @@
   justify-content: space-between;
   gap: 8px;
   padding: 10px 16px;
-  background: rgba(1,176,184,.08);
-  border-bottom: 1px solid rgba(1,176,184,.2);
+  background: rgba(143,157,255,.08);
+  border-bottom: 1px solid rgba(143,157,255,.2);
   font-size: .8125rem;
   font-weight: 600;
   color: var(--muted);
 }
 
 .go-submitted-badge {
-  background: rgba(1,176,184,.15);
-  border: 1px solid rgba(1,176,184,.3);
-  color: #01b0b8;
+  background: rgba(143,157,255,.15);
+  border: 1px solid rgba(143,157,255,.3);
+  color: var(--go-accent);
   border-radius: 99px;
   padding: 2px 10px;
   font-size: 11px;
@@ -674,7 +681,7 @@
 
 #go-banner-error {
   font-size: .8125rem;
-  color: #ffaab4;
+  color: var(--danger-text);
   min-height: 0;
   margin: 0;
   padding: 0;
@@ -688,7 +695,7 @@
 
 .go-btn-primary {
   background: var(--accent);
-  color: #111;
+  color: var(--accent-contrast);
   border: none;
   border-radius: 7px;
   padding: 9px 20px;
@@ -755,12 +762,12 @@
    — Teal-Farbschema analog zu .checkout-supplier-badge
 ------------------------------------------------------------ */
 #go-order-section.go-checkout-area {
-  background: rgba(1,176,184,.06);
-  border-color: rgba(1,176,184,.3);
+  background: rgba(143,157,255,.06);
+  border-color: rgba(143,157,255,.3);
 }
 
 #go-order-section .go-checkout-area-title {
-  color: #01b0b8;
+  color: var(--go-accent);
 }
 
 /* ------------------------------------------------------------
