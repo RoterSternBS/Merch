@@ -38,11 +38,22 @@ npx serve .        # oder
 npx wrangler dev   # echte Worker-Umgebung
 ```
 
-Deployment (nicht automatisiert, bewusst manuell):
+Deployment läuft automatisch über die Cloudflare-Workers-Git-Integration:
+Pushes auf Branches erzeugen Preview-Deployments des Workers
+`roter-stern-bs` (Branch-URL: `fable-test-roter-stern-bs.merch-0d4.workers.dev`),
+Merges nach `main` deployen Production. Manuell geht weiterhin:
 
 ```bash
 npx wrangler deploy
 ```
+
+> **Bekanntes CI-Problem:** Mit dem Repo ist eine zweite Workers-Build-
+> Integration für einen Worker namens `merch` verbunden (anderer
+> Cloudflare-Account, `0690f43a…`). Deren Build schlägt bei **jedem**
+> Commit fehl (auch auf `main`), weil `wrangler.jsonc` den Namen
+> `roter-stern-bs` deklariert und nicht `merch`. Fix: die verwaiste
+> Git-Integration im Dashboard des betroffenen Accounts trennen
+> (Workers → merch → Settings → Builds) oder den Worker löschen.
 
 ---
 
@@ -121,6 +132,9 @@ Ersetzung der zuvor hartcodierten Amber-/Teal-Werte in den CSS-Dateien:
 
 ## Cloudflare
 
-Keine Änderungen. Der Worker liefert nur statische Assets aus; Deployment
-bleibt manuell (`npx wrangler deploy`). Es wurden keine DNS-, Cache- oder
-Routing-Einstellungen angefasst und kein Deployment ausgelöst.
+Keine Konfigurationsänderungen. Der Worker liefert nur statische Assets
+aus. Es wurden keine DNS-, Cache- oder Routing-Einstellungen angefasst;
+Branch-Pushes erzeugen über die bestehende Git-Integration automatisch
+Preview-Deployments (Production bleibt unberührt, solange nicht nach
+`main` gemergt wird). Zum fehlschlagenden `merch`-Build siehe Hinweis
+oben unter „Lokale Entwicklung".
