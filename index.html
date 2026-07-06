@@ -659,56 +659,88 @@
     </div>
 
      <!-- ======================================================
-         Adress Änderung
+         NEW LOOK — KONTODATEN (Fullscreen-Panel, wie „Meine Bestellungen")
+         Sichtbarkeit + Daten steuert user-dropdown.js
     ====================================================== -->
+    <div id="account-panel" class="go-panel app-panel account-panel"
+         role="dialog" aria-modal="true" aria-label="Kontodaten" aria-hidden="true">
+      <div class="go-panel-inner app-panel-inner">
+        <div class="go-panel-handle" aria-hidden="true"></div>
 
-      <div id="address-modal" class="address-modal address-modal--hidden"
-       role="dialog" aria-modal="true" aria-labelledby="address-modal-title" aria-hidden="true">
-    <div class="address-modal-backdrop" aria-hidden="true"></div>
-    <div class="address-modal-panel">
-      <div class="address-modal-header">
-        <h2 id="address-modal-title" class="address-modal-title">Adresse ändern</h2>
-        <button id="address-modal-close" class="address-modal-close" type="button" aria-label="Modal schließen">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
+        <div class="go-panel-header app-panel-header">
+          <button class="go-panel-back-btn app-panel-back-btn" id="account-back-btn" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+            Zurück
+          </button>
+          <h2 class="go-panel-header-title">Kontodaten</h2>
+          <button class="go-panel-close-btn" id="account-close-btn" type="button" aria-label="Schließen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="go-panel-body">
+          <p class="account-intro">Verwalte hier deine persönlichen Daten und deine Lieferadresse.</p>
+
+          <div class="account-grid">
+
+            <!-- Profil (read-only) -->
+            <section class="account-card" aria-label="Profil">
+              <div class="account-profile-head">
+                <span class="account-avatar" id="account-avatar" aria-hidden="true">?</span>
+                <div class="account-profile-id">
+                  <p class="account-name" id="account-name">—</p>
+                  <p class="account-email" id="account-email">—</p>
+                </div>
+                <span class="account-type-badge hidden" id="account-type-badge"></span>
+              </div>
+              <dl class="account-facts" id="account-facts"></dl>
+              <p class="account-note">
+                Name und E-Mail wurden bei der Registrierung festgelegt. Zum Ändern wende dich an den Vorstand.
+              </p>
+            </section>
+
+            <!-- Lieferadresse (editierbar) -->
+            <form id="address-form" class="account-card" novalidate>
+              <div class="account-section-head">
+                <h3 class="account-section-title">Lieferadresse</h3>
+                <p class="account-section-sub">Wohin deine Bestellungen geliefert werden.</p>
+              </div>
+
+              <div class="account-form">
+                <div class="account-field account-field--wide">
+                  <label class="form-label" for="address-street">Straße</label>
+                  <input id="address-street" class="account-input" type="text"
+                         placeholder="Musterstraße" autocomplete="street-address" required />
+                </div>
+                <div class="account-field">
+                  <label class="form-label" for="address-house">Hausnr.</label>
+                  <input id="address-house" class="account-input" type="text"
+                         placeholder="12" autocomplete="off" required />
+                </div>
+                <div class="account-field">
+                  <label class="form-label" for="address-postal">PLZ</label>
+                  <input id="address-postal" class="account-input" type="text"
+                         placeholder="12345" autocomplete="postal-code" maxlength="5" inputmode="numeric" required />
+                </div>
+                <div class="account-field account-field--wide">
+                  <label class="form-label" for="address-city">Ort</label>
+                  <input id="address-city" class="account-input" type="text"
+                         placeholder="Musterstadt" autocomplete="address-level2" required />
+                </div>
+              </div>
+
+              <p id="address-message" class="address-message" aria-live="polite"></p>
+
+              <div class="account-form-actions">
+                <button type="button" class="btn-outline" id="account-cancel-btn">Verwerfen</button>
+                <button type="submit" id="address-submit-btn" class="btn-primary">Speichern</button>
+              </div>
+            </form>
+
+          </div>
+        </div>
       </div>
-      <form id="address-form" novalidate>
-        <div class="address-form-row address-form-row--street">
-          <div class="address-form-group">
-            <label class="form-label" for="address-street">Straße</label>
-            <input id="address-street" class="form-input" type="text"
-                   placeholder="Musterstraße" autocomplete="street-address" required />
-          </div>
-          <div class="address-form-group">
-            <label class="form-label" for="address-house">Hausnr.</label>
-            <input id="address-house" class="form-input" type="text"
-                   placeholder="12" autocomplete="off" required />
-          </div>
-        </div>
-        <div class="address-form-row">
-          <div class="address-form-group address-form-group--postal">
-            <label class="form-label" for="address-postal">PLZ</label>
-            <input id="address-postal" class="form-input" type="text"
-                   placeholder="12345" autocomplete="postal-code" maxlength="5" inputmode="numeric" required />
-          </div>
-          <div class="address-form-group address-form-group--city">
-            <label class="form-label" for="address-city">Ort</label>
-            <input id="address-city" class="form-input" type="text"
-                   placeholder="Musterstadt" autocomplete="address-level2" required />
-          </div>
-        </div>
-        <p id="address-message" class="address-message" aria-live="polite"></p>
-        <div class="address-modal-footer">
-          <button type="button" class="btn-outline"
-                  onclick="document.getElementById('address-modal-close').click()">Abbrechen</button>
-          <button type="submit" id="address-submit-btn" class="btn-primary">Speichern</button>
-        </div>
-      </form>
     </div>
-  </div>
 
 
             

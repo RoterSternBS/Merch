@@ -10,8 +10,11 @@
   const userMenuBtn  = document.getElementById("user-menu-btn");
   const userDropdown = document.getElementById("user-dropdown");
   const addressBtn   = document.getElementById("address-change-btn");
-  const addressModal      = document.getElementById("address-modal");
-  const addressModalClose = document.getElementById("address-modal-close");
+  // NEW LOOK: Kontodaten sind jetzt ein Fullscreen-Panel statt Mini-Modal
+  const accountPanel     = document.getElementById("account-panel");
+  const accountBackBtn   = document.getElementById("account-back-btn");
+  const accountCloseBtn  = document.getElementById("account-close-btn");
+  const accountCancelBtn = document.getElementById("account-cancel-btn");
   const addressForm       = document.getElementById("address-form");
   const addressMessage    = document.getElementById("address-message");
   const addressSubmitBtn  = document.getElementById("address-submit-btn");
@@ -37,18 +40,93 @@
     }
   });
 
-  // ── MODAL ÖFFNEN ──────────────────────────────────────────
-  async function openAddressModal() {
+  // ── KONTODATEN-PANEL ÖFFNEN / SCHLIESSEN ──────────────────
+  function isAccountOpen() {
+    return !!accountPanel && accountPanel.classList.contains("go-panel--open");
+  }
+
+  function openAccountPanel() {
+    // Dropdown schließen
     userDropdown.classList.remove("user-dropdown--open");
     userMenuBtn.setAttribute("aria-expanded", "false");
     userDropdown.setAttribute("aria-hidden", "true");
+    if (!accountPanel) return;
 
+    // Andere Fullscreen-Panels schließen, damit sich nichts überlagert
+    if (typeof closeGroupPanel === "function") closeGroupPanel();
+    if (typeof closeMyOrders === "function") closeMyOrders();
+
+    if (window.innerWidth >= 1024) {
+      document.getElementById("products-section")?.classList.add("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    accountPanel.classList.add("go-panel--open");
+    accountPanel.setAttribute("aria-hidden", "false");
+    if (typeof openPanelOverlay === "function") openPanelOverlay();
+    history.pushState({ view: "account" }, "", location.href);
+
+    loadAccount();
+  }
+
+  function closeAccountPanel() {
+    if (!accountPanel) return;
+    accountPanel.classList.remove("go-panel--open");
+    accountPanel.setAttribute("aria-hidden", "true");
+    if (typeof closePanelOverlay === "function") closePanelOverlay();
+    if (window.innerWidth >= 1024) {
+      document.getElementById("products-section")?.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    setAddressMessage("", false);
+  }
+
+  // Profil (read-only) aus den Auth-Metadaten rendern
+  function renderProfile(user) {
+    const md = user.user_metadata || {};
+    const first = (md.first_name || "").trim();
+    const last  = (md.last_name  || "").trim();
+    const email = user.email || "";
+    const fullName = [first, last].filter(Boolean).join(" ")
+      || (email ? email.split("@")[0] : "—");
+    const isOrg = md.account_type === "organization";
+
+    const nameEl   = document.getElementById("account-name");
+    const emailEl  = document.getElementById("account-email");
+    const avatarEl = document.getElementById("account-avatar");
+    const badgeEl  = document.getElementById("account-type-badge");
+    const factsEl  = document.getElementById("account-facts");
+
+    if (nameEl)   nameEl.textContent   = fullName;
+    if (emailEl)  emailEl.textContent  = email;
+    if (avatarEl) avatarEl.textContent = (first[0] || email[0] || "?").toUpperCase();
+    if (badgeEl) {
+      badgeEl.textContent = isOrg ? "Organisation" : "Person";
+      badgeEl.classList.remove("hidden");
+    }
+    if (factsEl) {
+      const rows = [fact("Kontotyp", isOrg ? "Organisation" : "Person")];
+      if (isOrg && md.organization_name) rows.push(fact("Verein", md.organization_name));
+      factsEl.innerHTML = rows.join("");
+    }
+  }
+
+  function fact(label, value) {
+    return '<div class="account-fact"><dt>' + esc(label) + "</dt><dd>" + esc(value) + "</dd></div>";
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  // Adresse laden (Panel ist bereits sichtbar)
+  async function loadAccount() {
     setAddressMessage("Daten werden geladen …", false);
     addressSubmitBtn.disabled = true;
-
     try {
       const user = await window.getCurrentUser();
       if (!user) { setAddressMessage("Kein angemeldeter Nutzer gefunden.", true); return; }
+
+      renderProfile(user);
 
       const { data, error } = await window.db
         .from("user_addresses")
@@ -67,23 +145,14 @@
     } finally {
       addressSubmitBtn.disabled = false;
     }
-
-    addressModal.classList.remove("address-modal--hidden");
-    addressModal.setAttribute("aria-hidden", "false");
-    fieldStreet.focus();
   }
 
-  function closeAddressModal() {
-    addressModal.classList.add("address-modal--hidden");
-    addressModal.setAttribute("aria-hidden", "true");
-    setAddressMessage("", false);
-  }
-
-  addressBtn.addEventListener("click", openAddressModal);
-  addressModalClose.addEventListener("click", closeAddressModal);
-  addressModal.addEventListener("click", (e) => { if (e.target === addressModal) closeAddressModal(); });
+  addressBtn.addEventListener("click", openAccountPanel);
+  accountBackBtn?.addEventListener("click", closeAccountPanel);
+  accountCloseBtn?.addEventListener("click", closeAccountPanel);
+  accountCancelBtn?.addEventListener("click", closeAccountPanel);
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !addressModal.classList.contains("address-modal--hidden")) closeAddressModal();
+    if (e.key === "Escape" && isAccountOpen()) closeAccountPanel();
   });
 
   // ── ADRESSE SPEICHERN ─────────────────────────────────────
@@ -113,7 +182,7 @@
 
       if (error) throw error;
       setAddressMessage("Adresse erfolgreich gespeichert.", false);
-      setTimeout(() => closeAddressModal(), 1200);
+      setTimeout(() => closeAccountPanel(), 1200);
     } catch (err) {
       setAddressMessage("Fehler beim Speichern: " + err.message, true);
     } finally {
