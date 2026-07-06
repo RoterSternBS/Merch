@@ -9,18 +9,22 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./tokens.css">
   <link rel="stylesheet" href="./auth.css">
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./panel-base.css">
   <link rel="stylesheet" href="./single-checkout.css">
   <link rel="stylesheet" href="./group-checkout.css">
+  <link rel="stylesheet" href="./new-look.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="auth.js"></script>
   <script defer src="./app.js"></script>
   <script defer src="./checkout.js"></script>
   <script defer src="./group-order.js"></script>
   <script defer src="./user-dropdown.js"></script>
+  <script defer src="./new-look.js"></script>
+  <script defer src="./my-orders.js"></script>
 </head>
 <body>
 
@@ -58,14 +62,40 @@
             <div class="user-dropdown-email" id="user-dropdown-email"></div>
             <div class="user-dropdown-divider"></div>
             
-  <!-- Button Adressänderung -->
+  <!-- NEW LOOK: Meine Bestellungen -->
+            <button id="my-orders-btn" class="user-dropdown-item" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                <path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/>
+                <path d="M8 11h8M8 15h5"/>
+              </svg>
+              Meine Bestellungen
+            </button>
+
+            <!-- NEW LOOK: Meine Sammelbestellungen -->
+            <button id="my-group-orders-btn" class="user-dropdown-item" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              </svg>
+              Meine Sammelbestellungen
+              <span id="my-go-badge" class="user-dropdown-badge hidden">0</span>
+            </button>
+
+            <!-- NEW LOOK: Kontodaten — enthält die Adressänderung.
+                 id "address-change-btn" bleibt erhalten, user-dropdown.js unverändert. -->
             <button id="address-change-btn" class="user-dropdown-item" type="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                    stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                <polyline points="9 22 9 12 15 12 15 22"/>
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 21v-1a6 6 0 0 1 12 0v1"/>
               </svg>
-              Adresse ändern
+              <span class="user-dropdown-item-stack">
+                Kontodaten
+                <span class="user-dropdown-item-sub">Profil · Adresse ändern</span>
+              </span>
             </button>
             <div class="user-dropdown-divider"></div>
             
@@ -82,6 +112,16 @@
           </div>
         </div>
       </div>
+
+      <!-- NEW LOOK: Hauptnavigation -->
+      <nav id="header-nav" class="header-nav hidden" aria-label="Hauptnavigation">
+        <button id="nav-shop-btn" class="header-nav-btn" type="button">Shop</button>
+        <button id="nav-go-btn" class="header-nav-btn" type="button">
+          <span class="header-nav-dot" aria-hidden="true"></span>
+          Sammelbestellungen
+          <span id="nav-go-count" class="header-nav-badge hidden">0</span>
+        </button>
+      </nav>
 
       <!-- Rechts: Cart fest -->
       <div class="header-actions">
@@ -312,6 +352,55 @@
         </button>
       </div>
     </section>
+
+    <!-- ======================================================
+         NEW LOOK — SAMMELBESTELLUNG HERO
+         Sichtbarkeit steuert new-look.js (eingeloggt, kein GO-Modus)
+    ====================================================== -->
+    <section id="shop-hero" class="shop-hero hidden" aria-label="Sammelbestellung">
+      <div class="shop-hero-main">
+        <span class="shop-hero-kicker">★ Gemeinsam bestellen</span>
+        <h1 class="shop-hero-title">Einer bestellt.<br><span>Der ganze Verein</span> spart.</h1>
+        <p class="shop-hero-copy">Bei einer <strong>Sammelbestellung</strong> bündeln wir alle Bestellungen bei einem Lieferanten bis zur Deadline — ein Versand, weniger Kosten, mehr für den Verein.</p>
+        <div class="shop-hero-actions">
+          <button id="hero-go-btn" class="hero-btn-primary" type="button">Zur aktiven Sammelbestellung →</button>
+          <button id="hero-howto-btn" class="hero-btn-outline" type="button" aria-expanded="false" aria-controls="hero-howto">So funktioniert's</button>
+        </div>
+      </div>
+      <div class="shop-hero-side">
+        <p class="shop-hero-side-label">Läuft gerade</p>
+        <div id="hero-featured"></div>
+      </div>
+      <div id="hero-howto" class="shop-hero-howto hidden">
+        <div class="howto-step">
+          <div class="howto-num" aria-hidden="true">1</div>
+          <div>
+            <p class="howto-title">Aktion beitreten</p>
+            <p class="howto-text">Wähle eine laufende Sammelbestellung deines Lieferanten aus.</p>
+          </div>
+        </div>
+        <div class="howto-step">
+          <div class="howto-num" aria-hidden="true">2</div>
+          <div>
+            <p class="howto-title">Artikel wählen</p>
+            <p class="howto-text">Leg deine Artikel bis zur Deadline in den gemeinsamen Warenkorb.</p>
+          </div>
+        </div>
+        <div class="howto-step">
+          <div class="howto-num" aria-hidden="true">3</div>
+          <div>
+            <p class="howto-title">Gebündelt bestellen</p>
+            <p class="howto-text">Nach der Deadline geht alles in einem Sammelversand raus.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEW LOOK — Sticky-CTA (nur mobil, wenn eine Aktion läuft) -->
+    <button id="go-sticky-cta" class="go-sticky-cta hidden" type="button">
+      <span class="go-sticky-dot" aria-hidden="true"></span>
+      <span id="go-sticky-label">Zur Sammelbestellung →</span>
+    </button>
 
     <!-- ======================================================
          SHOP
