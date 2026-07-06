@@ -12,15 +12,33 @@
    1) HEADER-NAV — persistenter Zugang zu Sammelbestellungen
    ============================================================ */
 
+/* Header-Grundlayout: Brand links, Nav zentriert, Aktionen rechts.
+   .header-inner kommt aus style.css (flex, space-between) — hier nur
+   position:relative ergänzen, damit die Nav absolut zentriert werden kann. */
+.header-inner { position: relative; }
+
 .header-nav {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-left: auto;
-  margin-right: 12px;
+  /* Zentriert im Header, unabhängig von Brand-/Aktions-Breite */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 4px;
 }
 
 .header-nav.hidden { display: none !important; }
+
+/* Aktiver Nav-Eintrag (z. B. „Shop") */
+.header-nav-btn.is-active {
+  background: var(--surface-4);
+  color: var(--text);
+}
 
 .header-nav-btn {
   display: inline-flex;
@@ -69,6 +87,161 @@
 @media (max-width: 719px) {
   .header-nav { display: none !important; }
 }
+
+/* ============================================================
+   1b) BRAND — „Roter Stern BS" (Logo + Titel + Subtitle)
+   ============================================================ */
+
+.header-brand {
+  text-decoration: none;
+  color: inherit;
+}
+.header-brand:hover { text-decoration: none; }
+
+/* Rotes, abgerundetes Logo-Quadrat mit weißem Stern */
+.header-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px var(--accent-dim-2);
+}
+
+.header-title {
+  display: block;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--text);
+}
+.header-title b { color: var(--accent); font-weight: 800; }
+
+.header-subtitle {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ============================================================
+   1c) THEME-TOGGLE — Auto / Hell / Dunkel
+   ============================================================ */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.theme-opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 9px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.theme-opt:hover { color: var(--text); }
+.theme-opt.is-active {
+  background: var(--surface-4);
+  color: var(--text);
+}
+.theme-opt svg { display: block; }
+
+/* Auf sehr schmalen Screens Theme-Toggle ausblenden (Menü reicht) */
+@media (max-width: 520px) {
+  .theme-toggle { display: none; }
+}
+
+/* ============================================================
+   1d) BENUTZER-AVATAR — rechts im Header
+   ============================================================ */
+
+.header-user { position: relative; }
+
+/* Trigger als runder Avatar statt E-Mail-Text */
+.header-user .user-menu-btn {
+  gap: 6px;
+  padding: 3px 8px 3px 4px;
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+.header-user .user-menu-btn:hover {
+  background: var(--accent-hover);
+  border-color: transparent;
+  color: #fff;
+}
+.header-user .user-menu-btn[aria-expanded="true"] {
+  background: var(--accent-hover);
+  border-color: transparent;
+  color: #fff;
+}
+
+/* E-Mail-Text bleibt im DOM (app.js setzt ihn), wird aber ausgeblendet */
+.header-user .user-menu-email { display: none; }
+
+.user-menu-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* Dropdown öffnet rechtsbündig unter dem Avatar */
+.header-user .user-dropdown {
+  left: auto;
+  right: 0;
+}
+
+/* ============================================================
+   1e) WARENKORB im Header auch auf Desktop sichtbar
+       (überschreibt das Ausblenden ab 1024px aus style.css)
+   ============================================================ */
+@media (min-width: 1024px) {
+  .cart-btn { display: inline-flex !important; }
+}
+
+/* ============================================================
+   1f) ALTE TRIGGER-BAR entfernen — der Zugang läuft jetzt über
+       Header-Nav, Hero und Sticky-CTA (kein doppeltes Menü mehr)
+   ============================================================ */
+.go-trigger-bar { display: none !important; }
+
+/* Feiner roter Akzent oben am Header */
+.header { border-top: 3px solid var(--accent); }
 
 /* ============================================================
    2) HERO — Sammelbestellung erklären + Einstieg
@@ -521,12 +694,14 @@ body.has-go-cta #filter-fab { bottom: 88px !important; }
 .mo-foot-total { font-weight: 700; color: var(--text); }
 
 /* ============================================================
-   7) HELLES THEME — automatisch nach Systemeinstellung
-   Reine Token-Überschreibung; Komponenten bleiben unverändert.
+   7) HELLES THEME — per Theme-Umschalter (Auto/Hell/Dunkel)
+   new-look.js löst „Auto" nach Systemeinstellung auf und setzt
+   data-theme="light" | "dark" auf <html>. Reine Token-Überschreibung.
    ============================================================ */
 
-@media (prefers-color-scheme: light) {
-  :root {
+:root[data-theme="dark"]  { color-scheme: dark; }
+
+:root[data-theme="light"] {
     --bg:            #f6f6fa;
     --surface:       #ffffff;
     --surface-2:     #f1f0f7;
@@ -583,19 +758,14 @@ body.has-go-cta #filter-fab { bottom: 88px !important; }
     --shadow-fab:         0 6px 24px rgba(25, 9, 51, 0.20), 0 2px 8px rgba(25, 9, 51, 0.10);
 
     color-scheme: light;
-  }
+}
 
-  /* Hardcodierte Dark-Werte gezielt nachziehen */
-  .go-trigger-bar {
-    background: rgba(42, 51, 152, 0.07);
-    border-bottom-color: rgba(42, 51, 152, 0.20);
-  }
-  .go-signal-banner {
-    background: linear-gradient(90deg, rgba(42, 51, 152, 0.10) 0%, rgba(42, 51, 152, 0.05) 100%);
-  }
-  .go-countdown--banner { background: rgba(42, 51, 152, 0.08); }
-  .go-supplier-logo-banner {
-    background: rgba(42, 51, 152, 0.04);
-    border-bottom-color: rgba(42, 51, 152, 0.15);
-  }
+/* Hardcodierte Dark-Werte im hellen Theme gezielt nachziehen */
+:root[data-theme="light"] .go-signal-banner {
+  background: linear-gradient(90deg, rgba(42, 51, 152, 0.10) 0%, rgba(42, 51, 152, 0.05) 100%);
+}
+:root[data-theme="light"] .go-countdown--banner { background: rgba(42, 51, 152, 0.08); }
+:root[data-theme="light"] .go-supplier-logo-banner {
+  background: rgba(42, 51, 152, 0.04);
+  border-bottom-color: rgba(42, 51, 152, 0.15);
 }

@@ -104,6 +104,7 @@
 
     $("shop-hero")?.classList.toggle("hidden", !(authed && shopVisible() && !inGo));
     $("header-nav")?.classList.toggle("hidden", !authed);
+    updateAvatar();
 
     const n = goOrders.length;
     const navBadge = $("nav-go-count");
@@ -118,6 +119,55 @@
     }
 
     updateStickyCta();
+  }
+
+  // Avatar-Initiale aus der (versteckten) E-Mail ableiten. app.js setzt
+  // #user-menu-email beim Login — wir spiegeln nur den ersten Buchstaben.
+  function updateAvatar() {
+    const avatar = $("user-menu-avatar");
+    const emailEl = $("user-menu-email");
+    if (!avatar || !emailEl) return;
+    const em = (emailEl.textContent || "").trim();
+    avatar.textContent = em ? em[0].toUpperCase() : "?";
+  }
+
+  // ----------------------------------------------------------
+  // Theme-Umschalter — Auto / Hell / Dunkel
+  // Speichert die Präferenz; „Auto" wird nach Systemeinstellung aufgelöst.
+  // ----------------------------------------------------------
+  const THEME_KEY = "rs-theme";
+  const media = window.matchMedia("(prefers-color-scheme: light)");
+
+  function getThemePref() {
+    try { return localStorage.getItem(THEME_KEY) || "auto"; } catch (e) { return "auto"; }
+  }
+  function resolveTheme(pref) {
+    if (pref === "light" || pref === "dark") return pref;
+    return media.matches ? "light" : "dark";
+  }
+  function applyTheme(pref) {
+    document.documentElement.setAttribute("data-theme", resolveTheme(pref));
+    document.querySelectorAll(".theme-opt").forEach((btn) => {
+      const on = btn.getAttribute("data-theme-choice") === pref;
+      btn.classList.toggle("is-active", on);
+      btn.setAttribute("aria-pressed", String(on));
+    });
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", resolveTheme(pref) === "light" ? "#f6f6fa" : "#0d0819");
+  }
+  function initTheme() {
+    applyTheme(getThemePref());
+    document.querySelectorAll(".theme-opt").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const pref = btn.getAttribute("data-theme-choice") || "auto";
+        try { localStorage.setItem(THEME_KEY, pref); } catch (e) {}
+        applyTheme(pref);
+      });
+    });
+    // Systemwechsel nur berücksichtigen, solange „Auto" aktiv ist
+    const onSystemChange = () => { if (getThemePref() === "auto") applyTheme("auto"); };
+    if (media.addEventListener) media.addEventListener("change", onSystemChange);
+    else if (media.addListener) media.addListener(onSystemChange);
   }
 
   function updateStickyCta() {
@@ -164,21 +214,25 @@
     if (inited) return;
     inited = true;
 
+    initTheme();
+
     const ps = $("products-section");
     if (ps) new MutationObserver(syncUI).observe(ps, { attributes: true, attributeFilter: ["class"] });
     const umb = $("user-menu-btn");
     if (umb) new MutationObserver(syncUI).observe(umb, { attributes: true, attributeFilter: ["class"] });
 
     // Header-Nav
-    $("nav-go-btn")?.addEventListener("click", () => {
-      if (typeof openGroupPanel === "function") openGroupPanel();
-    });
-    $("nav-shop-btn")?.addEventListener("click", () => {
+    function goToShop() {
       if (typeof closeGroupPanel === "function") closeGroupPanel();
       const cs = $("checkout-section");
       if (cs && !cs.classList.contains("hidden") && typeof closeCheckout === "function") closeCheckout();
       window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    $("nav-go-btn")?.addEventListener("click", () => {
+      if (typeof openGroupPanel === "function") openGroupPanel();
     });
+    $("nav-shop-btn")?.addEventListener("click", goToShop);
+    $("brand-home")?.addEventListener("click", (e) => { e.preventDefault(); goToShop(); });
 
     // Dropdown: Meine Sammelbestellungen → Panel
     $("my-group-orders-btn")?.addEventListener("click", () => {
