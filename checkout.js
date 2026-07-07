@@ -65,7 +65,7 @@ function updateCartLabelsForGo() {
        <span class="cart-supplier-name" style="display:none;">${escapeHtml(supplierName)}</span>`
     : `<span class="cart-supplier-name">${escapeHtml(supplierName)}</span>`;
 
-  const label = `<span style="display:block;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;line-height:1;">Sammelbestellung</span>`;
+  const label = `<span style="display:block;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;line-height:1;">${escapeHtml(t("checkout.groupLabel"))}</span>`;
 
   const cartHeadH2 = document.querySelector('#cart-section .section-head h2');
   if (cartHeadH2) cartHeadH2.innerHTML = label + logoOrName;
@@ -74,18 +74,18 @@ function updateCartLabelsForGo() {
   if (drawerTitle) drawerTitle.innerHTML = label + logoOrName;
 
   const badgeBtn = document.getElementById('cart-badge-btn');
-  if (badgeBtn) badgeBtn.setAttribute('aria-label', `Sammelbestellung ${supplierName}`);
+  if (badgeBtn) badgeBtn.setAttribute('aria-label', `${t('checkout.groupLabel')} ${supplierName}`);
 }
 
 function resetCartLabels() {
   const cartHeadH2 = document.querySelector('#cart-section .section-head h2');
-  if (cartHeadH2) cartHeadH2.innerHTML = 'Warenkorb';
+  if (cartHeadH2) cartHeadH2.textContent = t('cart.title');
 
   const drawerTitle = document.querySelector('.cart-drawer-title');
-  if (drawerTitle) drawerTitle.innerHTML = 'Warenkorb';
+  if (drawerTitle) drawerTitle.textContent = t('cart.title');
 
   const badgeBtn = document.getElementById('cart-badge-btn');
-  if (badgeBtn) badgeBtn.setAttribute('aria-label', 'Warenkorb öffnen');
+  if (badgeBtn) badgeBtn.setAttribute('aria-label', t('cart.openAria'));
 }
 
 // ============================================================
@@ -99,8 +99,8 @@ function renderCheckoutHeader() {
   const sess = window.goSession;
   if (!sess) {
     titleWrap.innerHTML = `
-      <p class="sidebar-label">Schritt 2 von 2</p>
-      <h2>Bestellübersicht</h2>`;
+      <p class="sidebar-label">${escapeHtml(t("checkout.step"))}</p>
+      <h2>${escapeHtml(t("checkout.title"))}</h2>`;
     return;
   }
 
@@ -113,9 +113,9 @@ function renderCheckoutHeader() {
   }
 
   titleWrap.innerHTML = `
-    <p class="sidebar-label">Sammelbestellung</p>
+    <p class="sidebar-label">${escapeHtml(t("checkout.groupLabel"))}</p>
     <div class="checkout-header-go-row">
-      <h2>Bestellübersicht</h2>
+      <h2>${escapeHtml(t("checkout.title"))}</h2>
       <div class="checkout-supplier-badge">${supplierDisplay}</div>
     </div>`;
 }
@@ -225,14 +225,14 @@ async function renderCheckout() {
   const { data, error } = await fetchCartItems(user.id);
 
   if (error) {
-    checkoutList.innerHTML = `<p class="checkout-error">Fehler beim Laden: ${escapeHtml(error.message)}</p>`;
+    checkoutList.innerHTML = `<p class="checkout-error">${escapeHtml(t("checkout.loadError", { msg: error.message }))}</p>`;
     return;
   }
 
   if (!data || data.length === 0) {
     checkoutList.innerHTML = '';
     checkoutEmpty.classList.remove('hidden');
-    checkoutTotal.textContent = '0,00 €';
+    checkoutTotal.textContent = formatPrice(0);
     checkoutItemCount.textContent = '0';
     _checkoutSnapshot = null;
     updateSubmitButtonLabel();
@@ -263,7 +263,7 @@ async function renderGoCheckout(user) {
   const { data, error } = await fetchGoCartItems(user.id, sess.groupOrderId);
 
   if (error) {
-    goCartListEl.innerHTML  = `<p class="checkout-error">Fehler beim Laden: ${escapeHtml(error.message)}</p>`;
+    goCartListEl.innerHTML  = `<p class="checkout-error">${escapeHtml(t("checkout.loadError", { msg: error.message }))}</p>`;
     goOrderListEl.innerHTML = '';
     return;
   }
@@ -345,7 +345,7 @@ function renderCartItemsList(data) {
     if (!groupedItems[pid]) {
       groupedItems[pid] = {
         productId:    pid,
-        productName:  product.name  || 'Produkt',
+        productName:  product.name  || t('common.product'),
         productSku:   product.sku   || null,
         productPrice: Number(product.price_brutto || 0),
         items: []
@@ -371,7 +371,7 @@ function renderCartItemsList(data) {
       const sizeCell = hasAnySize
         ? `<div class="checkout-item-size">${sizeLabel
             ? `<span class="checkout-size-badge">${escapeHtml(sizeLabel)}</span>`
-            : `<span class="checkout-size-badge checkout-size-badge--none">Keine Größe</span>`}</div>`
+            : `<span class="checkout-size-badge checkout-size-badge--none">${escapeHtml(t("checkout.noSize"))}</span>`}</div>`
         : '';
       const priceCell = hasAnySize
         ? `<div class="checkout-item-price">${formatPrice(lineTotal)}</div>`
@@ -379,13 +379,13 @@ function renderCartItemsList(data) {
       return `<div class="checkout-item-row">
         ${sizeCell}
         <div class="checkout-item-qty">
-          <button type="button" class="qty-stepper-btn" data-qty-dec="${escapeHtml(String(item.id))}" aria-label="Menge verringern">−</button>
+          <button type="button" class="qty-stepper-btn" data-qty-dec="${escapeHtml(String(item.id))}" aria-label="${escapeHtml(t("checkout.qtyDecAria"))}">−</button>
           <span class="qty-stepper-value" id="qty-val-${escapeHtml(String(item.id))}">${Number(item.quantity)}</span>
-          <button type="button" class="qty-stepper-btn" data-qty-inc="${escapeHtml(String(item.id))}" aria-label="Menge erhöhen">+</button>
+          <button type="button" class="qty-stepper-btn" data-qty-inc="${escapeHtml(String(item.id))}" aria-label="${escapeHtml(t("checkout.qtyIncAria"))}">+</button>
         </div>
         ${priceCell}
         <button type="button" class="remove-btn icon-btn checkout-remove-btn"
-          data-checkout-remove="${escapeHtml(String(item.id))}" aria-label="Position entfernen">
+          data-checkout-remove="${escapeHtml(String(item.id))}" aria-label="${escapeHtml(t("checkout.removePosAria"))}">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
           </svg>
@@ -395,9 +395,9 @@ function renderCartItemsList(data) {
 
     const headerRowHtml = hasAnySize ? `
         <div class="checkout-item-row checkout-item-row--header">
-          <div class="checkout-item-size">Größe</div>
-          <div class="checkout-item-qty">Menge</div>
-          <div class="checkout-item-price">Preis</div>
+          <div class="checkout-item-size">${escapeHtml(t("checkout.sizeHeader"))}</div>
+          <div class="checkout-item-qty">${escapeHtml(t("checkout.qtyHeader"))}</div>
+          <div class="checkout-item-price">${escapeHtml(t("checkout.priceHeader"))}</div>
           <div></div>
         </div>` : '';
 
@@ -444,7 +444,7 @@ function renderGoSection(containerEl, items, mode) {
     if (!groupedItems[pid]) {
       groupedItems[pid] = {
         productId:    pid,
-        productName:  product.name  || 'Produkt',
+        productName:  product.name  || t('common.product'),
         productSku:   product.sku   || null,
         productPrice: Number(product.price_brutto || 0),
         items: []
@@ -479,7 +479,7 @@ function renderGoSection(containerEl, items, mode) {
       const sizeCell = hasAnySize
         ? `<div class="checkout-item-size">${sizeLabel
             ? `<span class="checkout-size-badge">${escapeHtml(sizeLabel)}</span>`
-            : `<span class="checkout-size-badge checkout-size-badge--none">Keine Größe</span>`}</div>`
+            : `<span class="checkout-size-badge checkout-size-badge--none">${escapeHtml(t("checkout.noSize"))}</span>`}</div>`
         : '';
       // Im no-size-Layout wird der Zeilenpreis nicht zusätzlich angezeigt —
       // der Gruppenpreis im Header reicht (eine Zeile pro Produkt).
@@ -489,13 +489,13 @@ function renderGoSection(containerEl, items, mode) {
       return `<div class="checkout-item-row${removedCls}">
         ${sizeCell}
         <div class="checkout-item-qty">
-          <button type="button" class="qty-stepper-btn" ${decAttr}="${escapeHtml(String(item.id))}" aria-label="Menge verringern">−</button>
+          <button type="button" class="qty-stepper-btn" ${decAttr}="${escapeHtml(String(item.id))}" aria-label="${escapeHtml(t("checkout.qtyDecAria"))}">−</button>
           <span class="qty-stepper-value" id="${qtyValPrefix}${escapeHtml(String(item.id))}">${Number(item.quantity)}</span>
-          <button type="button" class="qty-stepper-btn" ${incAttr}="${escapeHtml(String(item.id))}" aria-label="Menge erhöhen">+</button>
+          <button type="button" class="qty-stepper-btn" ${incAttr}="${escapeHtml(String(item.id))}" aria-label="${escapeHtml(t("checkout.qtyIncAria"))}">+</button>
         </div>
         ${priceCell}
         <button type="button" class="remove-btn icon-btn checkout-remove-btn"
-          ${removeAttr}="${escapeHtml(String(item.id))}" aria-label="Position entfernen">
+          ${removeAttr}="${escapeHtml(String(item.id))}" aria-label="${escapeHtml(t("checkout.removePosAria"))}">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
           </svg>
@@ -506,9 +506,9 @@ function renderGoSection(containerEl, items, mode) {
     // Header-Zeile (Größe | Menge | Preis) nur, wenn das Produkt Größen hat.
     const headerRowHtml = hasAnySize ? `
         <div class="checkout-item-row checkout-item-row--header">
-          <div class="checkout-item-size">Größe</div>
-          <div class="checkout-item-qty">Menge</div>
-          <div class="checkout-item-price">Preis</div>
+          <div class="checkout-item-size">${escapeHtml(t("checkout.sizeHeader"))}</div>
+          <div class="checkout-item-qty">${escapeHtml(t("checkout.qtyHeader"))}</div>
+          <div class="checkout-item-price">${escapeHtml(t("checkout.priceHeader"))}</div>
           <div></div>
         </div>` : '';
 
@@ -548,7 +548,7 @@ async function updateGoCartItemQty(cartItemId, delta) {
     const { error } = await updateGoCartQty(cartItemId, newQty, user.id);
     if (error) {
       if (valEl) valEl.textContent = String(currentQty);
-      setOrderMessage(`Fehler: ${error.message}`, true);
+      setOrderMessage(t("cart.error", { msg: error.message }), true);
       return;
     }
     await renderGoCheckout(user);
@@ -562,7 +562,7 @@ async function removeGoCartItem(cartItemId) {
   const user = await getCurrentUser();
   if (!user) return;
   const { error } = await deleteGoCartItem(cartItemId, user.id);
-  if (error) { setOrderMessage(`Fehler beim Entfernen: ${error.message}`, true); return; }
+  if (error) { setOrderMessage(t("cart.removeError", { msg: error.message }), true); return; }
   await renderGoCheckout(user);
   await loadGoCartBadge();
 }
@@ -648,7 +648,7 @@ async function refreshGoCheckoutTotals() {
 
 async function updateSubmitButtonLabel() {
   if (!window.goSession) {
-    submitOrderBtn.textContent   = 'Bestellung absenden';
+    submitOrderBtn.textContent   = t('checkout.submit');
     submitOrderBtn.disabled      = false;
     submitOrderBtn.style.opacity = '1';
     submitOrderBtn.style.cursor  = 'pointer';
@@ -657,8 +657,8 @@ async function updateSubmitButtonLabel() {
 
   // GO-Modus: Label nach Existenz von confirmed=true-Zeilen wechseln
   submitOrderBtn.textContent = _goHasConfirmed
-    ? 'Bestellung aktualisieren'
-    : 'Bestellung absenden';
+    ? t('checkout.update')
+    : t('checkout.submit');
 
   const enabled = _goHasUnconfirmed || hasPendingOrderEdits();
   submitOrderBtn.disabled      = !enabled;
@@ -686,7 +686,7 @@ async function updateCheckoutItemQty(cartItemId, delta) {
       .update({ quantity: newQty }).eq('id', cartItemId).eq('user_id', user.id);
     if (error) {
       if (valEl) valEl.textContent = String(currentQty);
-      setOrderMessage(`Fehler: ${error.message}`, true);
+      setOrderMessage(t("cart.error", { msg: error.message }), true);
       return;
     }
     await Promise.all([renderCheckout(), loadCart()]);
@@ -700,7 +700,7 @@ async function removeCheckoutItem(cartItemId) {
   if (!user) return;
   const { error } = await db.from('cart_items')
     .delete().eq('id', cartItemId).eq('user_id', user.id);
-  if (error) { setOrderMessage(`Fehler beim Entfernen: ${error.message}`, true); return; }
+  if (error) { setOrderMessage(t("cart.removeError", { msg: error.message }), true); return; }
   await Promise.all([renderCheckout(), loadCart()]);
 }
 
@@ -710,7 +710,7 @@ async function removeCheckoutItem(cartItemId) {
 
 async function submitOrder() {
   const user = await getCurrentUser();
-  if (!user) { setOrderMessage('Du musst eingeloggt sein.', true); return; }
+  if (!user) { setOrderMessage(t('cart.loginRequired'), true); return; }
 
   if (window.goSession) {
     // GO-Modus: Sidebar-Button "Bestellung absenden" macht zwei Dinge atomar:
@@ -731,18 +731,18 @@ async function submitOrder() {
   }
 
   const { data: cartItems, error: cartError } = await fetchCartItems(user.id);
-  if (cartError) { setOrderMessage(`Fehler beim Laden: ${cartError.message}`, true); return; }
-  if (!cartItems || cartItems.length === 0) { setOrderMessage('Dein Warenkorb ist leer.', true); return; }
+  if (cartError) { setOrderMessage(t("checkout.loadError", { msg: cartError.message }), true); return; }
+  if (!cartItems || cartItems.length === 0) { setOrderMessage(t('order.cartEmpty'), true); return; }
 
   const { data: orderData, error: orderError } = await db.from('orders')
     .insert({ user_id: user.id, status: 'submitted', note: null })
     .select().single();
-  if (orderError || !orderData) { setOrderMessage(`Fehler: ${orderError?.message || 'Unbekannt'}`, true); return; }
+  if (orderError || !orderData) { setOrderMessage(t("order.error", { msg: orderError?.message || t('order.errorUnknown') }), true); return; }
 
   const itemRows = cartItems.map(item => ({
     order_id:         orderData.id,
     product_id:       item.product_id,
-    product_name:     item.products?.name || 'Produkt',
+    product_name:     item.products?.name || t('common.product'),
     product_sku:      item.products?.sku  || null,
     quantity:         item.quantity,
     unit_price_netto: Number(item.products?.price_netto || 0),
@@ -754,7 +754,7 @@ async function submitOrder() {
   const { error: itemsError } = await db.from('order_items').insert(itemRows);
   if (itemsError) {
     await db.from('orders').delete().eq('id', orderData.id);
-    setOrderMessage(`Fehler beim Speichern: ${itemsError.message}`, true);
+    setOrderMessage(t("order.saveError", { msg: itemsError.message }), true);
     return;
   }
 
@@ -762,16 +762,16 @@ async function submitOrder() {
     await sendOrderEmailViaEdgeFunction(orderData.id);
   } catch (mailError) {
     console.warn('E-Mail-Fehler:', mailError.message);
-    setOrderMessage(`Bestellung gespeichert (ID: ${orderData.id}), E-Mail fehlgeschlagen.`, true);
+    setOrderMessage(t("order.mailFailed", { id: orderData.id }), true);
     await db.from('cart_items').delete().eq('user_id', user.id);
     closeCheckout(); closeCartDrawer(); await loadCart();
     return;
   }
 
   const { error: clearCartError } = await db.from('cart_items').delete().eq('user_id', user.id);
-  if (clearCartError) { setOrderMessage(`Gespeichert, aber Warenkorb nicht geleert: ${clearCartError.message}`, true); return; }
+  if (clearCartError) { setOrderMessage(t("order.savedNotCleared", { msg: clearCartError.message }), true); return; }
 
-  setOrderMessage(`Bestellung erfolgreich. ID: ${orderData.id}`);
+  setOrderMessage(t("order.success", { id: orderData.id }));
   closeCheckout(); closeCartDrawer(); await loadCart();
 }
 
@@ -786,9 +786,9 @@ async function confirmGoCartItems(user) {
 
   const { data: openItems, error: loadErr } =
     await fetchGoCartItems(user.id, sess.groupOrderId, false);
-  if (loadErr) { setOrderMessage('Fehler beim Laden: ' + loadErr.message, true); return; }
+  if (loadErr) { setOrderMessage(t("go.confirmLoadError", { msg: loadErr.message }), true); return; }
   if (!openItems || openItems.length === 0) {
-    setOrderMessage('Dein Warenkorb ist leer.', true);
+    setOrderMessage(t('order.cartEmpty'), true);
     return;
   }
 
@@ -815,7 +815,7 @@ async function confirmGoCartItems(user) {
 
     const { data: existingConfirmed, error: confLoadErr } = await confQ.maybeSingle();
     if (confLoadErr) {
-      setOrderMessage('Fehler beim Prüfen bestehender Positionen: ' + confLoadErr.message, true);
+      setOrderMessage(t("go.confirmCheckError", { msg: confLoadErr.message }), true);
       return;
     }
 
@@ -827,14 +827,14 @@ async function confirmGoCartItems(user) {
         .update({ quantity: mergedQty })
         .eq('id', existingConfirmed.id);
       if (mergeErr) {
-        setOrderMessage('Fehler beim Zusammenführen: ' + mergeErr.message, true);
+        setOrderMessage(t("go.mergeError", { msg: mergeErr.message }), true);
         return;
       }
       const { error: delErr } = await db.from('group_order_cart')
         .delete()
         .eq('id', item.id);
       if (delErr) {
-        setOrderMessage('Fehler beim Aufräumen der Warenkorb-Zeile: ' + delErr.message, true);
+        setOrderMessage(t("go.cleanupError", { msg: delErr.message }), true);
         return;
       }
     } else {
@@ -843,13 +843,13 @@ async function confirmGoCartItems(user) {
         .update({ confirmed: true })
         .eq('id', item.id);
       if (confErr) {
-        setOrderMessage('Fehler beim Hinzufügen zur Bestellung: ' + confErr.message, true);
+        setOrderMessage(t("go.addToOrderError", { msg: confErr.message }), true);
         return;
       }
     }
   }
 
-  setOrderMessage('Zur Sammelbestellung hinzugefügt.');
+  setOrderMessage(t('order.addedToGroup'));
 
   // Ansichten aktualisieren
   await renderGoCheckout(user);
@@ -866,7 +866,7 @@ async function confirmGoCartItems(user) {
 
 async function applyPendingOrderEdits() {
   const user = await getCurrentUser();
-  if (!user) { setOrderMessage('Du musst eingeloggt sein.', true); return; }
+  if (!user) { setOrderMessage(t('cart.loginRequired'), true); return; }
   if (!hasPendingOrderEdits()) return;
 
   const ids        = Object.keys(pendingOrderEdits.qty);
@@ -880,7 +880,7 @@ async function applyPendingOrderEdits() {
       .eq('user_id', user.id)
       .eq('confirmed', true);
     if (error) {
-      setOrderMessage('Fehler beim Löschen: ' + error.message, true);
+      setOrderMessage(t("go.deleteError", { msg: error.message }), true);
       return;
     }
   }
@@ -895,13 +895,13 @@ async function applyPendingOrderEdits() {
       .eq('user_id', user.id)
       .eq('confirmed', true);
     if (error) {
-      setOrderMessage('Fehler beim Aktualisieren: ' + error.message, true);
+      setOrderMessage(t("go.updateError", { msg: error.message }), true);
       return;
     }
   }
 
   resetPendingOrderEdits();
-  setOrderMessage('Bestellung aktualisiert.');
+  setOrderMessage(t('order.updated'));
   await renderGoCheckout(user);
   await loadGoCartBadge();
 }
@@ -918,7 +918,7 @@ function showGoPostSubmitDialog(sess) {
     dialog.className = 'go-modal';
     dialog.setAttribute('role', 'dialog');
     dialog.setAttribute('aria-modal', 'true');
-    dialog.setAttribute('aria-label', 'Bestellung gespeichert');
+    dialog.setAttribute('aria-label', t('dialog.savedAria'));
     document.body.appendChild(dialog);
   }
 
@@ -926,21 +926,21 @@ function showGoPostSubmitDialog(sess) {
   // _goHasConfirmed wurde durch das vorherige render aktualisiert und
   // beschreibt den Zustand VOR dem aktuellen Submit nicht mehr zuverlässig;
   // wir orientieren uns am aktuellen Label-Stand des Sidebar-Buttons.
-  const wasUpdate = submitOrderBtn.textContent === 'Bestellung aktualisieren';
-  const title     = wasUpdate ? 'Bestellung aktualisiert' : 'Bestellung gespeichert';
+  const wasUpdate = submitOrderBtn.textContent === t('checkout.update');
+  const title     = wasUpdate ? t('dialog.updatedTitle') : t('dialog.savedTitle');
   const message   = wasUpdate
-    ? `Deine Änderungen wurden in der Sammelbestellung <strong>${escapeHtml(sess.supplierName)}</strong> gespeichert.`
-    : `Deine Artikel wurden der Sammelbestellung <strong>${escapeHtml(sess.supplierName)}</strong> hinzugefügt.`;
+    ? t('dialog.updatedMsg', { name: escapeHtml(sess.supplierName) })
+    : t('dialog.savedMsg',   { name: escapeHtml(sess.supplierName) });
 
   dialog.innerHTML = `
     <div class="go-modal-backdrop"></div>
     <div class="go-modal-box">
       <div class="go-post-submit-icon">✓</div>
-      <h2 class="go-modal-title">${title}</h2>
+      <h2 class="go-modal-title">${escapeHtml(title)}</h2>
       <p class="go-post-submit-text">${message}</p>
       <div class="go-modal-footer go-modal-footer--col">
-        <button type="button" class="go-btn-primary"   id="go-post-go-back">Zur Sammelbestellung</button>
-        <button type="button" class="go-btn-secondary" id="go-post-close-go">Sammelbestellung schließen</button>
+        <button type="button" class="go-btn-primary"   id="go-post-go-back">${escapeHtml(t('dialog.goToGroup'))}</button>
+        <button type="button" class="go-btn-secondary" id="go-post-close-go">${escapeHtml(t('dialog.closeGroup'))}</button>
       </div>
     </div>`;
 
@@ -977,7 +977,7 @@ function showGoPostSubmitDialog(sess) {
 async function sendOrderEmailViaEdgeFunction(orderId) {
   const { data: sessionData } = await db.auth.getSession();
   const accessToken = sessionData?.session?.access_token;
-  if (!accessToken) throw new Error('Kein Access Token.');
+  if (!accessToken) throw new Error(t('order.noToken'));
   const response = await fetch('https://fniweelbmnsrdmotkmzu.supabase.co/functions/v1/resend-email', {
     method: 'POST',
     headers: {
@@ -1059,3 +1059,20 @@ if (checkoutBackBtn) {
     updateSubmitButtonLabel();
   });
 }
+
+// ============================================================
+// Sprachwechsel: Warenkorb-Labels + offenen Checkout neu aufbauen
+// ============================================================
+document.addEventListener('i18n:changed', () => {
+  // Warenkorb-Titel je nach Modus korrekt setzen (überschreibt data-i18n)
+  if (window.goSession && typeof updateCartLabelsForGo === 'function') {
+    updateCartLabelsForGo(window.goSession.supplierName);
+  } else if (typeof resetCartLabels === 'function') {
+    resetCartLabels();
+  }
+  updateSubmitButtonLabel();
+  // Offenen Checkout komplett neu rendern
+  if (checkoutSection && !checkoutSection.classList.contains('hidden')) {
+    renderCheckout();
+  }
+});

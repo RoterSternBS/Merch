@@ -12,14 +12,17 @@
 (function () {
   "use strict";
 
-  const STATUS_LABELS = {
-    submitted:  "Eingegangen",
-    processing: "In Bearbeitung",
-    ordered:    "Bestellt",
-    shipped:    "Versendet",
-    completed:  "Abgeschlossen",
-    cancelled:  "Storniert",
+  const STATUS_KEYS = {
+    submitted:  "status.submitted",
+    processing: "status.processing",
+    ordered:    "status.ordered",
+    shipped:    "status.shipped",
+    completed:  "status.completed",
+    cancelled:  "status.cancelled",
   };
+  function statusLabel(status) {
+    return STATUS_KEYS[status] ? t(STATUS_KEYS[status]) : (status || "—");
+  }
   const STATUS_DONE = new Set(["shipped", "completed"]);
 
   function ensurePanel() {
@@ -30,7 +33,7 @@
     panel.className = "go-panel app-panel";
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
-    panel.setAttribute("aria-label", "Meine Bestellungen");
+    panel.setAttribute("aria-label", t("mo.title"));
     panel.setAttribute("aria-hidden", "true");
     panel.innerHTML = `
       <div class="go-panel-inner app-panel-inner">
@@ -38,10 +41,10 @@
         <div class="go-panel-header app-panel-header">
           <button class="go-panel-back-btn app-panel-back-btn" id="my-orders-back" type="button">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-            Zurück
+            <span data-i18n="go.back">${escapeHtml(t("go.back"))}</span>
           </button>
-          <h2 class="go-panel-header-title">Meine Bestellungen</h2>
-          <button class="go-panel-close-btn" id="my-orders-close" type="button" aria-label="Schließen">
+          <h2 class="go-panel-header-title" data-i18n="mo.title">${escapeHtml(t("mo.title"))}</h2>
+          <button class="go-panel-close-btn" id="my-orders-close" type="button" data-i18n-attr="aria-label:go.closeAria" aria-label="${escapeHtml(t("go.closeAria"))}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -98,11 +101,11 @@
   async function renderMyOrders() {
     const body = document.getElementById("my-orders-body");
     if (!body) return;
-    body.innerHTML = '<p class="mo-intro">Wird geladen …</p>';
+    body.innerHTML = `<p class="mo-intro">${escapeHtml(t("mo.loading"))}</p>`;
 
     const user = await getCurrentUser();
     if (!user) {
-      body.innerHTML = '<div class="mo-empty">Kein angemeldeter Nutzer gefunden.</div>';
+      body.innerHTML = `<div class="mo-empty">${escapeHtml(t("mo.noUser"))}</div>`;
       return;
     }
 
@@ -115,27 +118,28 @@
       .order("created_at", { ascending: false });
 
     if (error) {
-      body.innerHTML = '<div class="mo-empty">Fehler beim Laden: ' + escapeHtml(error.message) + "</div>";
+      body.innerHTML = '<div class="mo-empty">' + escapeHtml(t("mo.loadError", { msg: error.message })) + "</div>";
       return;
     }
 
     if (!data || data.length === 0) {
       body.innerHTML =
-        '<p class="mo-intro">Alle deine Einzel- und Sammelbestellungen mit Status und Positionen.</p>' +
-        '<div class="mo-empty">Noch keine Bestellungen.</div>';
+        '<p class="mo-intro">' + escapeHtml(t("mo.intro")) + '</p>' +
+        '<div class="mo-empty">' + escapeHtml(t("mo.none")) + '</div>';
       return;
     }
 
     const cards = data.map((o) => {
       const isGo = !!o.group_order_id;
       const supplier = o.group_orders?.suppliers?.name || o.group_orders?.title || null;
-      const heading = isGo ? (supplier || "Sammelbestellung") : "Einzelbestellung";
+      const heading = isGo ? (supplier || t("mo.groupOrder")) : t("mo.singleOrder");
       const initials = (supplier || "RS").trim().slice(0, 2).toUpperCase();
-      const typeLabel = isGo ? "Sammelbestellung" : "Einzelbestellung";
+      const typeLabel = isGo ? t("mo.groupOrder") : t("mo.singleOrder");
+      const loc = (typeof i18nLocale === "function") ? i18nLocale() : "de-DE";
       const dateStr = o.created_at
-        ? new Date(o.created_at).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })
+        ? new Date(o.created_at).toLocaleDateString(loc, { day: "2-digit", month: "2-digit", year: "numeric" })
         : "";
-      const statusLabel = STATUS_LABELS[o.status] || o.status || "—";
+      const statusText = statusLabel(o.status);
       const statusCls = STATUS_DONE.has(o.status) ? " mo-status--done" : "";
 
       const items = o.order_items || [];
@@ -143,9 +147,9 @@
       const totalNetto = items.reduce((s, l) => s + Number(l.unit_price_netto || 0) * Number(l.quantity || 0), 0);
 
       const lines = items.map((l) => {
-        const size = l.size_label ? " (Gr. " + escapeHtml(l.size_label) + ")" : "";
+        const size = l.size_label ? " " + t("mo.sizeShort", { code: l.size_label }) : "";
         return '<div class="mo-line"><span><b>' + Number(l.quantity) + "×</b> " +
-          escapeHtml(l.product_name || "Produkt") + size + "</span>" +
+          escapeHtml(l.product_name || t("common.product")) + escapeHtml(size) + "</span>" +
           '<span class="mo-line-price">' + formatPrice(Number(l.unit_price_netto || 0) * Number(l.quantity || 0)) + "</span></div>";
       }).join("");
 
@@ -155,19 +159,19 @@
             '<div class="mo-logo" aria-hidden="true">' + escapeHtml(initials) + "</div>" +
             '<div class="mo-head-info">' +
               '<p class="mo-title">' + escapeHtml(heading) + "</p>" +
-              '<p class="mo-meta"><span class="' + (isGo ? "mo-type-go" : "") + '">' + typeLabel + "</span> · " + escapeHtml(dateStr) + "</p>" +
+              '<p class="mo-meta"><span class="' + (isGo ? "mo-type-go" : "") + '">' + escapeHtml(typeLabel) + "</span> · " + escapeHtml(dateStr) + "</p>" +
             "</div>" +
-            '<span class="mo-status' + statusCls + '">' + escapeHtml(statusLabel) + "</span>" +
+            '<span class="mo-status' + statusCls + '">' + escapeHtml(statusText) + "</span>" +
           "</div>" +
           '<div class="mo-lines">' + lines + "</div>" +
-          '<div class="mo-foot"><span>' + itemCount + " Artikel</span>" +
-          '<span class="mo-foot-total">Summe (netto): ' + formatPrice(totalNetto) + "</span></div>" +
+          '<div class="mo-foot"><span>' + escapeHtml(t("mo.itemsCount", { n: itemCount })) + "</span>" +
+          '<span class="mo-foot-total">' + escapeHtml(t("mo.sumNetto", { price: formatPrice(totalNetto) })) + "</span></div>" +
         "</article>"
       );
     }).join("");
 
     body.innerHTML =
-      '<p class="mo-intro">Alle deine Einzel- und Sammelbestellungen mit Status und Positionen.</p>' +
+      '<p class="mo-intro">' + escapeHtml(t("mo.intro")) + '</p>' +
       '<div class="mo-list">' + cards + "</div>";
   }
 
@@ -195,6 +199,11 @@
   } else {
     init();
   }
+
+  // Sprachwechsel: offene Bestellliste neu rendern
+  document.addEventListener("i18n:changed", () => {
+    if (isOpen()) renderMyOrders();
+  });
 
   // Für Debug/Konsole
   window.openMyOrders = openMyOrders;

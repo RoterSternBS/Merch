@@ -172,9 +172,107 @@
 }
 .theme-opt svg { display: block; }
 
-/* Auf sehr schmalen Screens Theme-Toggle ausblenden (Menü reicht) */
+/* ============================================================
+   1c-2) SPRACH-UMSCHALTER — Deutsch / English / العربية
+   Gleiche Optik wie der Theme-Toggle, bleibt aber auch auf
+   kleinen Screens sichtbar (Sprache ist wichtiger als Theme).
+   ============================================================ */
+
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.lang-opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 9px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.lang-opt:hover { color: var(--text); }
+.lang-opt.is-active {
+  background: var(--surface-4);
+  color: var(--text);
+}
+/* Das arabische Glyph etwas größer für Lesbarkeit */
+.lang-opt[lang="ar"] { font-size: 0.95rem; line-height: 1; }
+
+/* Sehr schmale Screens: kompakter, aber weiterhin sichtbar */
+@media (max-width: 400px) {
+  .lang-opt { min-width: 26px; padding: 0 6px; }
+}
+
+/* ============================================================
+   1c-3) EINSTELLUNGEN IM BENUTZER-DROPDOWN
+   Sprach- + Theme-Umschalter als Zeilen (Label links, Toggle rechts)
+   ============================================================ */
+
+.user-dropdown-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 12px;
+}
+
+.user-dropdown-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.user-dropdown-setting-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Im Dropdown sitzen die Toggles auf der Menü-Fläche — dezenter Rahmen */
+.user-dropdown-settings .lang-toggle,
+.user-dropdown-settings .theme-toggle {
+  background: var(--surface-3, var(--surface-2));
+}
+
+/* ============================================================
+   1c-4) SICHTBARER UMSCHALTER AUF DER LOGIN-SEITE
+   Oben rechts über der Login-/Registrierungs-Karte.
+   ============================================================ */
+
+/* Positionierungskontext für den absoluten Login-Umschalter */
+.auth-section { position: relative; }
+
+.auth-switchers {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 3;
+}
+html[dir="rtl"] .auth-switchers { right: auto; left: 16px; }
+
 @media (max-width: 520px) {
-  .theme-toggle { display: none; }
+  .auth-switchers { top: 12px; right: 12px; gap: 8px; }
+  html[dir="rtl"] .auth-switchers { left: 12px; }
 }
 
 /* ============================================================
@@ -929,4 +1027,56 @@ body.has-go-cta #filter-fab { bottom: 88px !important; }
 @media (max-width: 520px) {
   .account-form-actions { flex-direction: column-reverse; }
   .account-form-actions button { width: 100%; }
+}
+
+/* ============================================================
+   RTL — Arabisch (dir="rtl")
+   Flexbox/Grid spiegeln sich automatisch; hier nur die Fälle,
+   die HTML/CSS explizit nicht mitbekommt.
+   ============================================================ */
+
+/* 1) Arabisch ist eine verbundene Schrift — letter-spacing zerstört
+   die Buchstabenverbindungen. Für die gesamte RTL-Ansicht neutralisieren.
+   (uppercase bleibt wirkungslos und stört nicht.) */
+html[dir="rtl"] * {
+  letter-spacing: normal !important;
+}
+
+/* 2) Standard-Textausrichtung rechts */
+html[dir="rtl"] body { text-align: right; }
+
+/* 3) Zahleneingaben / E-Mail / Datum bleiben von links nach rechts,
+   damit Ziffern, Adressen und datetime-local korrekt lesbar sind. */
+html[dir="rtl"] input,
+html[dir="rtl"] select,
+html[dir="rtl"] .account-input,
+html[dir="rtl"] .go-input {
+  text-align: right;
+}
+html[dir="rtl"] input[type="email"],
+html[dir="rtl"] input[type="password"],
+html[dir="rtl"] input[type="number"],
+html[dir="rtl"] input[type="datetime-local"],
+html[dir="rtl"] input[inputmode="numeric"] {
+  direction: ltr;
+  text-align: right;
+}
+
+/* 4) Der Sprach-Umschalter selbst bleibt in fester Reihenfolge (DE EN ع),
+   damit die Buttons nicht je nach Sprache springen. */
+html[dir="rtl"] .lang-toggle,
+html[dir="rtl"] .theme-toggle { direction: ltr; }
+
+/* 5) Panels sliden weiterhin sauber ein — Transitions unangetastet.
+   Nur die Handle-/Kopf-Ausrichtung nachziehen, wo nötig. */
+html[dir="rtl"] .go-panel-header,
+html[dir="rtl"] .app-panel-header { text-align: initial; }
+
+/* 6) Das Benutzer-Dropdown ist mit right:0 verankert (öffnet nach links).
+   In RTL muss es an der linken Kante ankern, sonst ragt das (auch im
+   geschlossenen Zustand gelayoutete) Menü über den rechten Rand hinaus
+   und erzeugt horizontales Scrollen. */
+html[dir="rtl"] .header-user .user-dropdown {
+  right: auto;
+  left: 0;
 }

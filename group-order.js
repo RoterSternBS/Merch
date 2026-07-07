@@ -98,12 +98,12 @@ function updateTriggerBar() {
   if (!bar) return;
   const count = activeGroupOrders.length;
   if (count === 0) {
-    bar.innerHTML = `<div class="go-trigger-bar-actions"><button class="go-create-btn" id="go-trigger-create-btn" type="button">+ Sammelbestellung eröffnen</button></div>`;
+    bar.innerHTML = `<div class="go-trigger-bar-actions"><button class="go-create-btn" id="go-trigger-create-btn" type="button">${escapeHtml(t('go.createBtn'))}</button></div>`;
     document.getElementById('go-trigger-create-btn')?.addEventListener('click', openGroupPanel);
   } else {
     // FIX #3: o.suppliers?.name statt o.title
-    const titles = activeGroupOrders.map(o => escapeHtml(o.suppliers?.name || o.title || 'Sammelbestellung'));
-    const label  = count === 1 ? titles[0] : `${count} Sammelbestellungen aktiv`;
+    const titles = activeGroupOrders.map(o => escapeHtml(o.suppliers?.name || o.title || t('go.defaultName')));
+    const label  = count === 1 ? titles[0] : t('go.countActive', { n: count });
     // NEW LOOK: Countdown zur nächsten Deadline + klarerer CTA-Text
     const soonest = activeGroupOrders[0];
     const countdownHtml = soonest
@@ -112,8 +112,8 @@ function updateTriggerBar() {
     bar.innerHTML = `
       <div class="go-trigger-bar-text"><span class="go-trigger-dot"></span><span>${label}</span>${countdownHtml}</div>
       <div class="go-trigger-bar-actions">
-        <button class="go-open-btn" id="go-trigger-open-btn" type="button">Zur Sammelbestellung</button>
-        <button class="go-create-btn" id="go-trigger-create-btn" type="button">+ Neu</button>
+        <button class="go-open-btn" id="go-trigger-open-btn" type="button">${escapeHtml(t('go.openBtn'))}</button>
+        <button class="go-create-btn" id="go-trigger-create-btn" type="button">${escapeHtml(t('go.newBtn'))}</button>
       </div>`;
     document.getElementById('go-trigger-open-btn')  ?.addEventListener('click', openGroupPanel);
     document.getElementById('go-trigger-create-btn')?.addEventListener('click', openGroupPanel);
@@ -236,11 +236,11 @@ function renderGoSignalBanner() {
   banner.innerHTML = `
     <div class="go-signal-left">
       <span class="go-signal-dot"></span>
-      <span class="go-signal-label">Sammelbestellung</span>
+      <span class="go-signal-label">${escapeHtml(t('go.signalLabel'))}</span>
       <span class="go-signal-supplier">${escapeHtml(sess.supplierName)}</span>
       ${sess.deadline ? `<span class="go-countdown go-countdown--banner" data-go-countdown="${escapeAttr(String(sess.deadline))}"></span>` : ''}
     </div>
-    <button class="go-signal-leave-btn" id="go-signal-leave" type="button">Verlassen</button>`;
+    <button class="go-signal-leave-btn" id="go-signal-leave" type="button">${escapeHtml(t('go.leave'))}</button>`;
   const ps = document.getElementById('products-section');
   ps?.parentNode?.insertBefore(banner, ps);
   document.getElementById('go-signal-leave')?.addEventListener('click', () => deactivateGoMode());
@@ -269,7 +269,7 @@ async function renderGoSupplierLogo(supplierId) {
   const banner = document.createElement('div');
   banner.id = 'go-supplier-logo-banner';
   banner.className = 'go-supplier-logo-banner';
-  banner.innerHTML = `<img src="${escapeHtml(data.logo_url)}" alt="Lieferanten-Logo" class="go-supplier-logo-img">`;
+  banner.innerHTML = `<img src="${escapeHtml(data.logo_url)}" alt="${escapeHtml(t('go.supplierLogoAlt'))}" class="go-supplier-logo-img">`;
 
   const ps = document.getElementById('products-section');
   ps?.parentNode?.insertBefore(banner, ps);
@@ -307,7 +307,7 @@ function ensurePanel() {
   panel.id = 'go-panel'; panel.className = 'go-panel app-panel';
   panel.setAttribute('role', 'dialog');
   panel.setAttribute('aria-modal', 'true');
-  panel.setAttribute('aria-label', 'Sammelbestellungen');
+  panel.setAttribute('aria-label', t('go.panelTitle'));
   panel.setAttribute('aria-hidden', 'true');
   panel.innerHTML = `
     <div class="go-panel-inner app-panel-inner">
@@ -315,10 +315,10 @@ function ensurePanel() {
       <div class="go-panel-header app-panel-header">
         <button class="go-panel-back-btn app-panel-back-btn" id="go-panel-back" type="button">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-          Zurück
+          <span data-i18n="go.back">${escapeHtml(t('go.back'))}</span>
         </button>
-        <h2 class="go-panel-header-title">Sammelbestellungen</h2>
-        <button class="go-panel-close-btn" id="go-panel-close" type="button" aria-label="Schließen">
+        <h2 class="go-panel-header-title" data-i18n="go.panelTitle">${escapeHtml(t('go.panelTitle'))}</h2>
+        <button class="go-panel-close-btn" id="go-panel-close" type="button" data-i18n-attr="aria-label:go.closeAria" aria-label="${escapeHtml(t('go.closeAria'))}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
@@ -371,44 +371,44 @@ function renderPanelContent() {
   let html = '';
 
   if (orders.length > 0) {
-    html += `<p class="go-section-title">Aktive Bestellungen</p><div class="go-list">`;
+    html += `<p class="go-section-title">${escapeHtml(t('go.activeOrders'))}</p><div class="go-list">`;
     html += orders.map(o => `
       <div class="go-item" data-go-item-id="${escapeHtml(String(o.id))}">
         <div class="go-item-info">
-          <p class="go-item-title">${escapeHtml(o.suppliers?.name || o.title || 'Sammelbestellung')}</p>
-          <p class="go-item-deadline">Endet am ${escapeHtml(formatDeadline(o.deadline))} · <span class="go-countdown" data-go-countdown="${escapeAttr(o.deadline)}"></span></p>
+          <p class="go-item-title">${escapeHtml(o.suppliers?.name || o.title || t('go.defaultName'))}</p>
+          <p class="go-item-deadline">${escapeHtml(t('go.endsOn', { date: formatDeadline(o.deadline) }))} · <span class="go-countdown" data-go-countdown="${escapeAttr(o.deadline)}"></span></p>
         </div>
         <div class="go-item-actions">
-          <button class="go-join-btn" data-join-id="${escapeHtml(String(o.id))}" type="button">Mitmachen</button>
-          <button class="go-undo-btn hidden" data-undo-id="${escapeHtml(String(o.id))}" type="button">Austreten</button>
+          <button class="go-join-btn" data-join-id="${escapeHtml(String(o.id))}" type="button">${escapeHtml(t('go.join'))}</button>
+          <button class="go-undo-btn hidden" data-undo-id="${escapeHtml(String(o.id))}" type="button">${escapeHtml(t('go.leaveBtn'))}</button>
           <button class="go-edit-btn"
             data-edit-id="${escapeHtml(String(o.id))}"
             data-edit-title="${escapeAttr(o.suppliers?.name || o.title || '')}"
             data-edit-deadline="${escapeAttr(o.deadline)}"
             data-edit-creator="${escapeAttr(o.created_by || '')}"
-            type="button" aria-label="Bearbeiten">✏️</button>
+            type="button" aria-label="${escapeAttr(t('go.editAria'))}">✏️</button>
         </div>
       </div>`).join('');
     html += '</div>';
   } else {
-    html += `<div style="padding:32px 0;text-align:center;color:var(--muted);font-size:.875rem;">Keine aktiven Sammelbestellungen.</div>`;
+    html += `<div style="padding:32px 0;text-align:center;color:var(--muted);font-size:.875rem;">${escapeHtml(t('go.none'))}</div>`;
   }
 
   html += `
-    <p class="go-section-title" style="margin-top:28px;">Neue Sammelbestellung</p>
+    <p class="go-section-title" style="margin-top:28px;">${escapeHtml(t('go.newOrder'))}</p>
     <div class="go-create-form">
       <div>
-        <label class="go-label" for="go-supplier-select">Lieferant <span class="go-required">*</span></label>
-        <select id="go-supplier-select" class="go-input" required><option value="">— wird geladen …</option></select>
+        <label class="go-label" for="go-supplier-select">${escapeHtml(t('go.supplier'))} <span class="go-required">*</span></label>
+        <select id="go-supplier-select" class="go-input" required><option value="">${escapeHtml(t('go.loadingOption'))}</option></select>
         <p id="go-supplier-error" class="go-error" role="alert" aria-live="polite" style="margin-top:4px;"></p>
       </div>
       <div id="go-deadline-wrap" style="opacity:.4;pointer-events:none;">
-        <label class="go-label" for="go-deadline-input">Deadline <span class="go-required">*</span></label>
+        <label class="go-label" for="go-deadline-input">${escapeHtml(t('go.deadline'))} <span class="go-required">*</span></label>
         <input type="datetime-local" id="go-deadline-input" class="go-input" required disabled>
       </div>
       <p id="go-create-error" class="go-error" role="alert" aria-live="polite"></p>
       <div style="display:flex;justify-content:flex-end;">
-        <button type="button" class="go-btn-primary" id="go-create-submit-btn" disabled style="opacity:.4;cursor:not-allowed;">Sammelbestellung erstellen</button>
+        <button type="button" class="go-btn-primary" id="go-create-submit-btn" disabled style="opacity:.4;cursor:not-allowed;">${escapeHtml(t('go.createSubmit'))}</button>
       </div>
     </div>
     <p id="go-banner-error" style="margin-top:8px;font-size:.8125rem;color:var(--danger-text);"></p>`;
@@ -432,7 +432,7 @@ function renderPanelContent() {
     } else {
       btn.style.opacity = '0.3';
       btn.style.cursor  = 'not-allowed';
-      btn.title = 'Nur der Ersteller kann die Deadline ändern';
+      btn.title = t('go.editOnlyCreator');
     }
   });
 
@@ -460,7 +460,7 @@ async function syncJoinState(groupOrderId) {
   const hasJoined = (count || 0) > 0;
 
   joinBtn.classList.toggle('go-join-btn--active', hasJoined);
-  joinBtn.textContent = hasJoined ? 'Beigetreten ✓' : 'Mitmachen';
+  joinBtn.textContent = hasJoined ? t('go.joined') : t('go.join');
   undoBtn.classList.toggle('hidden', !hasJoined);
 
   if (hasJoined) {
@@ -470,7 +470,7 @@ async function syncJoinState(groupOrderId) {
       goBtn.className = 'go-join-btn go-join-btn--goto';
       goBtn.setAttribute('data-goto-go', groupOrderId);
       goBtn.type = 'button';
-      goBtn.textContent = '→ Zur Sammelbestellung';
+      goBtn.textContent = t('go.gotoGroup');
       undoBtn.after(goBtn);
       const order = activeGroupOrders.find(o => String(o.id) === String(groupOrderId));
       // FIX #7: 6-Parameter-Signatur
@@ -539,13 +539,13 @@ async function leaveGroupOrder(groupOrderId) {
   if (!user) return;
   const order = activeGroupOrders.find(o => String(o.id) === String(groupOrderId));
   if (order && new Date(order.deadline) <= new Date()) {
-    showBannerError('Deadline abgelaufen. Austreten nicht mehr möglich.');
+    showBannerError(t('go.leaveDeadlinePassed'));
     return;
   }
   const { error } = await db.from('orders')
     .update({ group_order_id: null })
     .eq('user_id', user.id).eq('group_order_id', groupOrderId);
-  if (error) { showBannerError('Fehler beim Austreten: ' + error.message); return; }
+  if (error) { showBannerError(t('go.leaveError', { msg: error.message })); return; }
   await syncJoinState(groupOrderId);
   if (window.goSession?.groupOrderId === String(groupOrderId)) deactivateGoMode();
 }
@@ -558,21 +558,21 @@ async function loadSupplierDropdown() {
   const select  = document.getElementById('go-supplier-select');
   const errorEl = document.getElementById('go-supplier-error');
   if (!select) return;
-  select.innerHTML = `<option value="">— wird geladen …</option>`;
+  select.innerHTML = `<option value="">${escapeHtml(t('go.loadingOption'))}</option>`;
 
   const { data, error } = await db.from('suppliers')
     .select('id, name')
     .eq('active', true)
     .order('name', { ascending: true });
 
-  if (error) { select.innerHTML = `<option value="">Fehler beim Laden</option>`; return; }
-  if (!data || data.length === 0) { select.innerHTML = `<option value="">Keine aktiven Lieferanten</option>`; return; }
+  if (error) { select.innerHTML = `<option value="">${escapeHtml(t('go.loadFailedOption'))}</option>`; return; }
+  if (!data || data.length === 0) { select.innerHTML = `<option value="">${escapeHtml(t('go.noActiveSuppliers'))}</option>`; return; }
 
-  select.innerHTML = `<option value="">Bitte wählen …</option>` +
+  select.innerHTML = `<option value="">${escapeHtml(t('go.pleaseSelect'))}</option>` +
     data.map(s => {
       const isBlocked = blockedSuppliers.has(s.id);
       return `<option value="${escapeAttr(s.id)}" data-name="${escapeAttr(s.name)}"${isBlocked ? ' disabled' : ''}>
-        ${escapeHtml(s.name)}${isBlocked ? ' (bereits aktiv)' : ''}
+        ${escapeHtml(s.name)}${isBlocked ? ' ' + t('go.alreadyActive') : ''}
       </option>`;
     }).join('');
 
@@ -586,7 +586,7 @@ function onSupplierChange(select, errorEl) {
   if (isBlocked) {
     setCreateFieldsEnabled(false);
     const name = select.options[select.selectedIndex]?.getAttribute('data-name') || val;
-    if (errorEl) errorEl.textContent = `Es gibt bereits eine offene Sammelbestellung für „${escapeHtml(name)}".`;
+    if (errorEl) errorEl.textContent = t('go.supplierBlocked', { name });
     return;
   }
   setCreateFieldsEnabled(true);
@@ -628,24 +628,24 @@ async function submitGroupOrder() {
   const deadline     = deadlineInput?.value || '';
   errorEl.textContent = '';
 
-  if (!supplierId) { errorEl.textContent = 'Bitte einen Lieferanten wählen.'; return; }
+  if (!supplierId) { errorEl.textContent = t('go.selectSupplier'); return; }
   // FIX #10: direkter UUID-Vergleich (kein .toLowerCase())
   if (blockedSuppliers.has(supplierId)) {
-    errorEl.textContent = `Es gibt bereits eine offene Sammelbestellung für „${escapeHtml(supplierName)}".`; return;
+    errorEl.textContent = t('go.supplierBlocked', { name: supplierName }); return;
   }
-  if (!deadline) { errorEl.textContent = 'Bitte eine Deadline angeben.'; return; }
+  if (!deadline) { errorEl.textContent = t('go.enterDeadline'); return; }
   const deadlineDate = new Date(deadline);
-  if (deadlineDate <= new Date()) { errorEl.textContent = 'Die Deadline muss in der Zukunft liegen.'; return; }
+  if (deadlineDate <= new Date()) { errorEl.textContent = t('go.deadlineFuture'); return; }
 
   // FIX #10: Duplicate-Check gegen supplier_id statt title
   const { data: existing, error: checkError } = await db.from('group_orders')
     .select('id').eq('status', 'open').eq('supplier_id', supplierId)
     .gt('deadline', new Date().toISOString()).maybeSingle();
-  if (checkError) { errorEl.textContent = 'Prüfungsfehler: ' + checkError.message; return; }
-  if (existing)   { errorEl.textContent = `Es gibt bereits eine offene Sammelbestellung für „${escapeHtml(supplierName)}".`; return; }
+  if (checkError) { errorEl.textContent = t('go.checkErrorPrefix', { msg: checkError.message }); return; }
+  if (existing)   { errorEl.textContent = t('go.supplierBlocked', { name: supplierName }); return; }
 
   const user = await getCurrentUser();
-  if (!user) { errorEl.textContent = 'Nicht eingeloggt.'; return; }
+  if (!user) { errorEl.textContent = t('go.notLoggedIn'); return; }
 
   const submitBtn = document.getElementById('go-create-submit-btn');
   if (submitBtn) submitBtn.disabled = true;
@@ -659,7 +659,7 @@ async function submitGroupOrder() {
   }).select().single();
 
   if (submitBtn) submitBtn.disabled = false;
-  if (insertError) { errorEl.textContent = 'Fehler beim Erstellen: ' + insertError.message; return; }
+  if (insertError) { errorEl.textContent = t('go.createError', { msg: insertError.message }); return; }
 
   await loadActiveGroupOrders();
   // FIX #7: 6-Parameter-Signatur
@@ -702,21 +702,21 @@ function buildEditModal() {
   modal.innerHTML = `
     <div class="go-modal-backdrop" id="go-edit-backdrop"></div>
     <div class="go-modal-box">
-      <button class="go-modal-close" type="button" aria-label="Schließen" id="go-edit-close">✕</button>
-      <h2 class="go-modal-title" id="go-edit-modal-title">Sammelbestellung bearbeiten</h2>
+      <button class="go-modal-close" type="button" aria-label="${escapeHtml(t('go.closeAria'))}" id="go-edit-close">✕</button>
+      <h2 class="go-modal-title" id="go-edit-modal-title">${escapeHtml(t('go.editTitle'))}</h2>
       <input type="hidden" id="go-edit-id">
       <div>
-        <p class="go-label">Lieferant</p>
+        <p class="go-label">${escapeHtml(t('go.supplier'))}</p>
         <p id="go-edit-title-display" class="go-value-readonly"></p>
       </div>
       <div>
-        <label class="go-label" for="go-edit-deadline-input">Deadline <span class="go-required">*</span></label>
+        <label class="go-label" for="go-edit-deadline-input">${escapeHtml(t('go.deadline'))} <span class="go-required">*</span></label>
         <input type="datetime-local" id="go-edit-deadline-input" class="go-input" required>
       </div>
       <p id="go-edit-error" class="go-error" role="alert" aria-live="polite"></p>
       <div class="go-modal-footer">
-        <button type="button" class="go-btn-secondary" id="go-edit-cancel">Abbrechen</button>
-        <button type="button" class="go-btn-primary"   id="go-edit-submit">Speichern</button>
+        <button type="button" class="go-btn-secondary" id="go-edit-cancel">${escapeHtml(t('go.cancel'))}</button>
+        <button type="button" class="go-btn-primary"   id="go-edit-submit">${escapeHtml(t('go.save'))}</button>
       </div>
     </div>`;
   modal.querySelector('#go-edit-backdrop').addEventListener('click', closeEditModal);
@@ -731,13 +731,13 @@ async function submitEditGroupOrder() {
   const deadline     = document.getElementById('go-edit-deadline-input').value;
   const errorEl      = document.getElementById('go-edit-error');
   errorEl.textContent = '';
-  if (!deadline) { errorEl.textContent = 'Bitte eine Deadline angeben.'; return; }
+  if (!deadline) { errorEl.textContent = t('go.enterDeadline'); return; }
   const deadlineDate = new Date(deadline);
-  if (deadlineDate <= new Date()) { errorEl.textContent = 'Die Deadline muss in der Zukunft liegen.'; return; }
+  if (deadlineDate <= new Date()) { errorEl.textContent = t('go.deadlineFuture'); return; }
   const { error } = await db.from('group_orders')
     .update({ deadline: deadlineDate.toISOString() })
     .eq('id', groupOrderId).eq('status', 'open');
-  if (error) { errorEl.textContent = 'Fehler: ' + error.message; return; }
+  if (error) { errorEl.textContent = t('go.editError', { msg: error.message }); return; }
   closeEditModal();
   await loadActiveGroupOrders();
   renderPanelContent();
@@ -748,7 +748,8 @@ async function submitEditGroupOrder() {
 // ============================================================
 
 function formatDeadline(isoString) {
-  return new Date(isoString).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const loc = (typeof i18nLocale === 'function') ? i18nLocale() : 'de-DE';
+  return new Date(isoString).toLocaleDateString(loc, { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 if (typeof escapeHtml === 'undefined') {
@@ -762,3 +763,15 @@ if (typeof escapeHtml === 'undefined') {
 function escapeAttr(str) {
   return String(str ?? '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
+
+// ============================================================
+// Sprachwechsel: dynamische GO-Oberflächen neu aufbauen
+// (Panel-Header übernimmt translateTree via data-i18n automatisch)
+// ============================================================
+document.addEventListener('i18n:changed', () => {
+  updateTriggerBar();
+  if (window.goSession) renderGoSignalBanner();
+  if (document.getElementById('go-panel')?.classList.contains('go-panel--open')) {
+    renderPanelContent();
+  }
+});

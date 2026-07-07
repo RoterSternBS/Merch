@@ -100,12 +100,12 @@
     if (emailEl)  emailEl.textContent  = email;
     if (avatarEl) avatarEl.textContent = (first[0] || email[0] || "?").toUpperCase();
     if (badgeEl) {
-      badgeEl.textContent = isOrg ? "Organisation" : "Person";
+      badgeEl.textContent = isOrg ? t("account.org") : t("account.person");
       badgeEl.classList.remove("hidden");
     }
     if (factsEl) {
-      const rows = [fact("Kontotyp", isOrg ? "Organisation" : "Person")];
-      if (isOrg && md.organization_name) rows.push(fact("Verein", md.organization_name));
+      const rows = [fact(t("account.accountTypeLabel"), isOrg ? t("account.org") : t("account.person"))];
+      if (isOrg && md.organization_name) rows.push(fact(t("account.club"), md.organization_name));
       factsEl.innerHTML = rows.join("");
     }
   }
@@ -120,11 +120,11 @@
 
   // Adresse laden (Panel ist bereits sichtbar)
   async function loadAccount() {
-    setAddressMessage("Daten werden geladen …", false);
+    setAddressMessage(t("account.loadingData"), false);
     addressSubmitBtn.disabled = true;
     try {
       const user = await window.getCurrentUser();
-      if (!user) { setAddressMessage("Kein angemeldeter Nutzer gefunden.", true); return; }
+      if (!user) { setAddressMessage(t("account.noUser"), true); return; }
 
       renderProfile(user);
 
@@ -141,7 +141,7 @@
       fieldCity.value   = data?.city         ?? "";
       setAddressMessage("", false);
     } catch (err) {
-      setAddressMessage("Fehler beim Laden: " + err.message, true);
+      setAddressMessage(t("account.loadError", { msg: err.message }), true);
     } finally {
       addressSubmitBtn.disabled = false;
     }
@@ -164,16 +164,16 @@
     const city          = fieldCity.value.trim();
 
     if (!street || !house_number || !postal_code || !city) {
-      setAddressMessage("Bitte alle Felder ausfüllen.", true);
+      setAddressMessage(t("account.fillAll"), true);
       return;
     }
 
     addressSubmitBtn.disabled    = true;
-    addressSubmitBtn.textContent = "Wird gespeichert …";
+    addressSubmitBtn.textContent = t("account.saving");
 
     try {
       const user = await window.getCurrentUser();
-      if (!user) throw new Error("Kein angemeldeter Nutzer.");
+      if (!user) throw new Error(t("account.noUserShort"));
 
       const { error } = await window.db
         .from("user_addresses")
@@ -181,13 +181,13 @@
         .eq("user_id", user.id);
 
       if (error) throw error;
-      setAddressMessage("Adresse erfolgreich gespeichert.", false);
+      setAddressMessage(t("account.saved"), false);
       setTimeout(() => closeAccountPanel(), 1200);
     } catch (err) {
-      setAddressMessage("Fehler beim Speichern: " + err.message, true);
+      setAddressMessage(t("account.saveError", { msg: err.message }), true);
     } finally {
       addressSubmitBtn.disabled    = false;
-      addressSubmitBtn.textContent = "Speichern";
+      addressSubmitBtn.textContent = t("account.save");
     }
   });
 
@@ -196,5 +196,10 @@
     addressMessage.className = "address-message"
       + (isError ? " address-message--error" : text ? " address-message--success" : "");
   }
+
+  // Sprachwechsel: bei offenem Konto-Panel Profil-Fakten neu laden
+  document.addEventListener("i18n:changed", () => {
+    if (isAccountOpen()) loadAccount();
+  });
 
 })();

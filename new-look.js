@@ -20,22 +20,23 @@
   // ----------------------------------------------------------
   function remaining(deadline) {
     const ms = new Date(deadline).getTime() - Date.now();
-    if (!isFinite(ms) || ms <= 0) return { text: "beendet", urgent: true, over: true };
+    if (!isFinite(ms) || ms <= 0) return { text: t("cd.ended"), urgent: true, over: true };
     const s = Math.floor(ms / 1000);
     const d = Math.floor(s / 86400);
     const h = Math.floor((s % 86400) / 3600);
     const m = Math.floor((s % 3600) / 60);
+    const uD = t("cd.days"), uH = t("cd.hours"), uM = t("cd.minutes"), uS = t("cd.seconds");
     let text;
-    if (d > 0)      text = d + " Tg " + h + " Std";
-    else if (h > 0) text = h + " Std " + m + " Min";
-    else            text = m + " Min " + String(s % 60).padStart(2, "0") + " Sek";
+    if (d > 0)      text = d + " " + uD + " " + h + " " + uH;
+    else if (h > 0) text = h + " " + uH + " " + m + " " + uM;
+    else            text = m + " " + uM + " " + String(s % 60).padStart(2, "0") + " " + uS;
     return { text, urgent: ms < 24 * 3600 * 1000, over: false };
   }
 
   function tick() {
     document.querySelectorAll("[data-go-countdown]").forEach((el) => {
       const r = remaining(el.getAttribute("data-go-countdown"));
-      el.textContent = (el.hasAttribute("data-countdown-bare") || r.over) ? r.text : "noch " + r.text;
+      el.textContent = (el.hasAttribute("data-countdown-bare") || r.over) ? r.text : t("cd.remainingPrefix", { time: r.text });
       el.classList.toggle("go-countdown--urgent", r.urgent);
     });
     updateStickyCta();
@@ -45,7 +46,7 @@
   // Vorgestellte Aktion = nächste Deadline (Liste ist danach sortiert)
   // ----------------------------------------------------------
   function featured() { return goOrders.length ? goOrders[0] : null; }
-  function supplierName(o) { return (o && (o.suppliers?.name || o.title)) || "Sammelbestellung"; }
+  function supplierName(o) { return (o && (o.suppliers?.name || o.title)) || t("go.defaultName"); }
 
   function renderFeatured() {
     const wrap = $("hero-featured");
@@ -55,15 +56,16 @@
     if (!f) {
       wrap.innerHTML =
         '<div class="hero-featured-card hero-featured-card--empty">' +
-        '<p class="hero-featured-sub">Gerade läuft keine Sammelbestellung.<br>Eröffne die nächste Aktion für deinen Lieferanten.</p>' +
-        '<button type="button" class="hero-featured-join" data-hero-create>+ Sammelbestellung eröffnen</button>' +
+        '<p class="hero-featured-sub">' + t("hero.emptyText") + '</p>' +
+        '<button type="button" class="hero-featured-join" data-hero-create>' + escapeHtml(t("hero.createBtn")) + '</button>' +
         "</div>";
       return;
     }
 
     const name = supplierName(f);
     const initials = name.trim().slice(0, 2).toUpperCase();
-    const dateStr = new Date(f.deadline).toLocaleDateString("de-DE", {
+    const loc = (typeof i18nLocale === "function") ? i18nLocale() : "de-DE";
+    const dateStr = new Date(f.deadline).toLocaleDateString(loc, {
       day: "2-digit", month: "2-digit", year: "numeric",
     });
 
@@ -73,14 +75,14 @@
           '<div class="hero-featured-logo" aria-hidden="true">' + escapeHtml(initials) + "</div>" +
           "<div>" +
             '<p class="hero-featured-name">' + escapeHtml(name) + "</p>" +
-            '<p class="hero-featured-sub">Endet am ' + escapeHtml(dateStr) + "</p>" +
+            '<p class="hero-featured-sub">' + escapeHtml(t("hero.endsOn", { date: dateStr })) + "</p>" +
           "</div>" +
         "</div>" +
         '<div class="hero-featured-count">' +
-          "<span>Endet in</span>" +
+          "<span>" + escapeHtml(t("hero.endsIn")) + "</span>" +
           '<span class="hero-featured-time" data-go-countdown="' + escapeHtml(String(f.deadline)) + '" data-countdown-bare></span>' +
         "</div>" +
-        '<button type="button" class="hero-featured-join" data-hero-join="' + escapeHtml(String(f.id)) + '">Mitmachen</button>' +
+        '<button type="button" class="hero-featured-join" data-hero-join="' + escapeHtml(String(f.id)) + '">' + escapeHtml(t("hero.join")) + '</button>' +
       "</div>";
 
     tick();
@@ -180,7 +182,7 @@
     if (show) {
       const r = remaining(f.deadline);
       const label = $("go-sticky-label");
-      if (label) label.textContent = "Sammelbestellung \u201e" + supplierName(f) + "\u201c \u00b7 noch " + r.text + " \u2192";
+      if (label) label.textContent = t("sticky.label", { name: supplierName(f), time: r.text });
     }
   }
 
@@ -206,6 +208,13 @@
     syncUI();
   });
   document.addEventListener("go:mode-changed", syncUI);
+
+  // Sprachwechsel: Hero-Karte, Countdown-Ticker und Sticky-CTA neu aufbauen
+  document.addEventListener("i18n:changed", () => {
+    renderFeatured();
+    syncUI();
+    tick();
+  });
 
   // ----------------------------------------------------------
   // Init
