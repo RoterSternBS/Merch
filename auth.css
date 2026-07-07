@@ -96,6 +96,48 @@
   cursor: pointer;
 }
 
+/* ── Formular-Zeilen (Vorname/Nachname, Straße/Hausnr., PLZ/Ort) ── */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+
+.form-row--address { grid-template-columns: 1fr 96px; }
+.form-row--postal  { grid-template-columns: 110px 1fr; }
+
+@media (max-width: 360px) {
+  .form-row { grid-template-columns: 1fr; }
+}
+
+/* ── Abschnitts-Trenner (Vereinsdaten) ── */
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin: var(--sp-2) 0 0;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-divider::before,
+.form-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Organisations-Felder (nur bei Kontotyp „Organisation") ── */
+.org-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
 /* ── Auth Divider ── */
 .auth-divider {
   display: flex;

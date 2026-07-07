@@ -1,0 +1,932 @@
+/* ============================================================
+   NEW LOOK — new-look.css
+   Branch: New_Look
+   Neue Bausteine: Header-Nav, Sammelbestellung-Hero, Countdown,
+   Sticky-CTA (mobil), Dropdown-Erweiterungen, "Meine Bestellungen",
+   helles Theme (automatisch nach Systemeinstellung).
+   Wird als LETZTES Stylesheet geladen (nach group-checkout.css).
+   Nutzt ausschließlich Tokens aus tokens.css + eigene Klassen.
+   ============================================================ */
+
+/* ============================================================
+   1) HEADER-NAV — persistenter Zugang zu Sammelbestellungen
+   ============================================================ */
+
+/* Header-Grundlayout: Brand links, Nav zentriert, Aktionen rechts.
+   .header-inner kommt aus style.css (flex, space-between) — hier nur
+   position:relative ergänzen, damit die Nav absolut zentriert werden kann. */
+.header-inner { position: relative; }
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  /* Zentriert im Header, unabhängig von Brand-/Aktions-Breite */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 4px;
+}
+
+.header-nav.hidden { display: none !important; }
+
+/* Aktiver Nav-Eintrag (z. B. „Shop") */
+.header-nav-btn.is-active {
+  background: var(--surface-4);
+  color: var(--text);
+}
+
+.header-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.header-nav-btn:hover  { background: var(--surface-3); color: var(--text); transform: none; }
+.header-nav-btn:active { transform: scale(.97); opacity: 1; }
+
+.header-nav-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--go-accent);
+  flex-shrink: 0;
+  animation: go-pulse 1.6s ease-in-out infinite;
+}
+
+.header-nav-badge {
+  background: var(--go-accent-btn);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-nav-badge.hidden { display: none !important; }
+
+/* Auf kleinen Screens: Nav ausblenden — Zugang über Sticky-CTA + Menü */
+@media (max-width: 719px) {
+  .header-nav { display: none !important; }
+}
+
+/* ============================================================
+   1b) BRAND — „Roter Stern BS" (Logo + Titel + Subtitle)
+   ============================================================ */
+
+.header-brand {
+  text-decoration: none;
+  color: inherit;
+}
+.header-brand:hover { text-decoration: none; }
+
+/* Rotes, abgerundetes Logo-Quadrat mit weißem Stern */
+.header-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px var(--accent-dim-2);
+}
+
+.header-title {
+  display: block;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--text);
+}
+.header-title b { color: var(--accent); font-weight: 800; }
+
+.header-subtitle {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ============================================================
+   1c) THEME-TOGGLE — Auto / Hell / Dunkel
+   ============================================================ */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.theme-opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 9px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.theme-opt:hover { color: var(--text); }
+.theme-opt.is-active {
+  background: var(--surface-4);
+  color: var(--text);
+}
+.theme-opt svg { display: block; }
+
+/* Auf sehr schmalen Screens Theme-Toggle ausblenden (Menü reicht) */
+@media (max-width: 520px) {
+  .theme-toggle { display: none; }
+}
+
+/* ============================================================
+   1d) BENUTZER-AVATAR — rechts im Header
+   ============================================================ */
+
+.header-user { position: relative; }
+
+/* Trigger als runder Avatar statt E-Mail-Text */
+.header-user .user-menu-btn {
+  gap: 6px;
+  padding: 3px 8px 3px 4px;
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+.header-user .user-menu-btn:hover {
+  background: var(--accent-hover);
+  border-color: transparent;
+  color: #fff;
+}
+.header-user .user-menu-btn[aria-expanded="true"] {
+  background: var(--accent-hover);
+  border-color: transparent;
+  color: #fff;
+}
+
+/* E-Mail-Text bleibt im DOM (app.js setzt ihn), wird aber ausgeblendet */
+.header-user .user-menu-email { display: none; }
+
+.user-menu-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* Dropdown öffnet rechtsbündig unter dem Avatar */
+.header-user .user-dropdown {
+  left: auto;
+  right: 0;
+}
+
+/* ============================================================
+   1e) WARENKORB im Header auch auf Desktop sichtbar
+       (überschreibt das Ausblenden ab 1024px aus style.css)
+   ============================================================ */
+@media (min-width: 1024px) {
+  .cart-btn { display: inline-flex !important; }
+}
+
+/* ============================================================
+   1f) ALTE TRIGGER-BAR entfernen — der Zugang läuft jetzt über
+       Header-Nav, Hero und Sticky-CTA (kein doppeltes Menü mehr)
+   ============================================================ */
+.go-trigger-bar { display: none !important; }
+
+/* Feiner roter Akzent oben am Header */
+.header { border-top: 3px solid var(--accent); }
+
+/* ============================================================
+   2) HERO — Sammelbestellung erklären + Einstieg
+   ============================================================ */
+
+.shop-hero {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+  box-shadow: var(--shadow-sm);
+  margin: clamp(12px, 2vw, 24px) clamp(12px, 2vw, 24px) 0;
+}
+.shop-hero.hidden { display: none !important; }
+
+@media (max-width: 860px) {
+  .shop-hero { grid-template-columns: 1fr; }
+}
+
+.shop-hero-main {
+  padding: clamp(20px, 4vw, 40px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}
+
+.shop-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  background: var(--go-bg-dim);
+  color: var(--go-accent);
+  border: 1px solid var(--go-border-strong);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.shop-hero-title {
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 0.98;
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  margin: 0;
+  color: var(--text);
+}
+.shop-hero-title span { color: var(--accent); }
+
+.shop-hero-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  max-width: 46ch;
+}
+.shop-hero-copy strong { color: var(--text); }
+
+.shop-hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.hero-btn-primary {
+  background: var(--go-accent-btn);
+  color: #fff;
+  border: none;
+  padding: 13px 22px;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease;
+}
+.hero-btn-primary:hover  { background: var(--go-accent-btn-hover); transform: none; }
+.hero-btn-primary:active { transform: scale(.97); opacity: 1; }
+
+.hero-btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  padding: 13px 20px;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease;
+}
+.hero-btn-outline:hover  { background: var(--surface-3); transform: none; }
+.hero-btn-outline:active { transform: scale(.97); opacity: 1; }
+
+/* Rechte Hero-Spalte: vorgestellte Aktion */
+.shop-hero-side {
+  background: var(--go-bg-dim);
+  border-left: 1px solid var(--border);
+  padding: clamp(16px, 3vw, 28px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+@media (max-width: 860px) {
+  .shop-hero-side { border-left: none; border-top: 1px solid var(--border); }
+}
+
+.shop-hero-side-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--go-accent);
+  font-weight: 700;
+  margin: 0;
+}
+
+.hero-featured-card {
+  background: var(--surface);
+  border: 1px solid var(--go-border-strong);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-featured-card--empty { align-items: flex-start; }
+
+.hero-featured-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero-featured-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--go-bg-dim);
+  border: 1px solid var(--go-border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--go-accent);
+  font-weight: 800;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.hero-featured-name { font-weight: 700; font-size: 1.05rem; margin: 0; color: var(--text); }
+.hero-featured-sub  { font-size: 0.82rem; color: var(--muted); margin: 2px 0 0; line-height: 1.45; }
+
+.hero-featured-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+}
+.hero-featured-count > span:first-child {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.hero-featured-time {
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 1.45rem;
+  letter-spacing: 0.02em;
+  color: var(--go-accent);
+}
+.hero-featured-time.go-countdown--urgent { color: var(--accent-text); }
+
+.hero-featured-join {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: none;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: 100%;
+  transition: background var(--dur-fast) ease;
+}
+.hero-featured-join:hover  { background: var(--accent-hover); transform: none; }
+.hero-featured-join:active { transform: scale(.97); opacity: 1; }
+
+/* "So funktioniert's" — 3 Schritte */
+.shop-hero-howto {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--border);
+  padding: clamp(18px, 3vw, 28px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  background: var(--surface);
+}
+.shop-hero-howto.hidden { display: none !important; }
+
+.howto-step { display: flex; gap: 12px; align-items: flex-start; }
+
+.howto-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.howto-title { font-weight: 700; margin: 0 0 4px; color: var(--text); font-size: 0.95rem; }
+.howto-text  { font-size: 0.875rem; color: var(--muted); line-height: 1.5; margin: 0; }
+
+/* ============================================================
+   3) COUNTDOWN — überall wo [data-go-countdown] steht
+   (Trigger-Bar, Panel-Liste, Signal-Banner, Hero, Sticky-CTA)
+   ============================================================ */
+
+.go-countdown {
+  font-weight: 700;
+  color: var(--go-accent);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.go-countdown--urgent { color: var(--accent-text); }
+
+.go-countdown--banner {
+  background: rgba(143, 157, 255, 0.12);
+  border: 1px solid var(--go-border-strong);
+  border-radius: var(--radius-full);
+  padding: 3px 10px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   4) STICKY-CTA (nur mobil, wenn Aktion läuft und kein GO-Modus)
+   ============================================================ */
+
+.go-sticky-cta {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--go-accent-btn);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 15px 18px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  box-shadow: var(--shadow-fab);
+  cursor: pointer;
+  transition: background var(--dur-fast) ease;
+}
+.go-sticky-cta:hover  { background: var(--go-accent-btn-hover); transform: none; }
+.go-sticky-cta:active { transform: scale(.98); opacity: 1; }
+.go-sticky-cta.hidden { display: none !important; }
+
+.go-sticky-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  flex-shrink: 0;
+  animation: go-pulse 1.6s ease-in-out infinite;
+}
+
+#go-sticky-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Desktop: kein Sticky-CTA (Nav übernimmt) */
+@media (min-width: 720px) {
+  .go-sticky-cta { display: none !important; }
+}
+
+/* Drawer offen → CTA weg (überlappt Bottom-Sheets nicht) */
+body.drawer-open .go-sticky-cta { display: none !important; }
+
+/* Filter-FAB nach oben schieben, solange der CTA sichtbar ist */
+body.has-go-cta #filter-fab { bottom: 88px !important; }
+
+/* ============================================================
+   5) USER-DROPDOWN — neue Einträge
+   ============================================================ */
+
+.user-dropdown-item-stack {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.user-dropdown-item-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.user-dropdown-badge {
+  margin-left: auto;
+  background: var(--go-accent-btn);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.user-dropdown-badge.hidden { display: none !important; }
+
+/* ============================================================
+   6) MEINE BESTELLUNGEN — Panel-Inhalt
+   (Panel-Rahmen kommt von .go-panel/.app-panel)
+   ============================================================ */
+
+.mo-intro {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+
+.mo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mo-empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+}
+
+.mo-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.mo-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.mo-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--surface-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.mo-head-info { flex: 1; min-width: 140px; }
+.mo-title { font-weight: 700; font-size: 1rem; margin: 0; color: var(--text); }
+.mo-meta  { font-size: 0.8rem; color: var(--muted); margin: 2px 0 0; }
+.mo-type-go { color: var(--go-accent); font-weight: 600; }
+
+.mo-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 4px 11px;
+  border-radius: var(--radius-full);
+  background: var(--go-bg-dim);
+  color: var(--go-accent);
+  white-space: nowrap;
+}
+.mo-status--done { background: rgba(111, 207, 139, 0.14); color: var(--success); }
+
+.mo-lines {
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mo-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.mo-line b { color: var(--text); font-weight: 600; }
+.mo-line-price { white-space: nowrap; color: var(--text); }
+
+.mo-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.mo-foot-total { font-weight: 700; color: var(--text); }
+
+/* ============================================================
+   7) HELLES THEME — per Theme-Umschalter (Auto/Hell/Dunkel)
+   new-look.js löst „Auto" nach Systemeinstellung auf und setzt
+   data-theme="light" | "dark" auf <html>. Reine Token-Überschreibung.
+   ============================================================ */
+
+:root[data-theme="dark"]  { color-scheme: dark; }
+
+:root[data-theme="light"] {
+    --bg:            #f6f6fa;
+    --surface:       #ffffff;
+    --surface-2:     #f1f0f7;
+    --surface-3:     #e8e6f2;
+    --surface-4:     #dedbec;
+    --surface-glass: rgba(255, 255, 255, 0.85);
+
+    --text:            #190933;
+    --muted:           #5f5878;
+    --faint:           #a9a3c0;
+    --text-inverse:    #f6f6fa;
+
+    --border:        rgba(25, 9, 51, 0.10);
+    --border-strong: rgba(25, 9, 51, 0.18);
+
+    /* Rot: für Lesbarkeit auf Weiß leicht abgedunkelt */
+    --accent:        #d90f1f;
+    --accent-hover:  #b90d1a;
+    --accent-text:   #b90d1a;
+    --accent-dim:    rgba(217, 15, 31, 0.10);
+    --accent-dim-2:  rgba(217, 15, 31, 0.18);
+
+    --focus:      #2a3398;
+    --focus-ring: rgba(42, 51, 152, 0.20);
+
+    --danger:        #c23a4e;
+    --danger-hover:  #a92f41;
+    --danger-text:   #b3374a;
+    --success:       #1f8a4c;
+
+    /* GO-Blau: auf hellem Grund das satte Vereinsblau als Textfarbe */
+    --go-accent:           #2a3398;
+    --go-accent-btn:       #2a3398;
+    --go-accent-btn-hover: #1f2775;
+    --go-bg-dim:           rgba(42, 51, 152, 0.07);
+    --go-bg-banner:        rgba(42, 51, 152, 0.10);
+    --go-border:           rgba(42, 51, 152, 0.30);
+    --go-border-strong:    rgba(42, 51, 152, 0.28);
+    --go-border-banner:    #2a3398;
+
+    --product-image-bg: #ffffff;
+
+    --banner-go-trigger-bg:     rgba(42, 51, 152, 0.07);
+    --banner-go-trigger-border: rgba(42, 51, 152, 0.25);
+    --banner-go-signal-border:  #2a3398;
+    --banner-go-logo-bg:        rgba(42, 51, 152, 0.05);
+    --banner-go-logo-border:    rgba(42, 51, 152, 0.18);
+
+    --shadow-sm:          0 1px 3px rgba(25, 9, 51, 0.10);
+    --shadow:             0 8px 24px rgba(25, 9, 51, 0.12);
+    --shadow-lg:          0 20px 48px rgba(25, 9, 51, 0.16);
+    --shadow-drawer:      0 -6px 40px rgba(25, 9, 51, 0.18), 0 -1px 6px rgba(25, 9, 51, 0.08);
+    --shadow-drawer-left: 6px 0 40px rgba(25, 9, 51, 0.18), 1px 0 6px rgba(25, 9, 51, 0.08);
+    --shadow-fab:         0 6px 24px rgba(25, 9, 51, 0.20), 0 2px 8px rgba(25, 9, 51, 0.10);
+
+    color-scheme: light;
+}
+
+/* Hardcodierte Dark-Werte im hellen Theme gezielt nachziehen */
+:root[data-theme="light"] .go-signal-banner {
+  background: linear-gradient(90deg, rgba(42, 51, 152, 0.10) 0%, rgba(42, 51, 152, 0.05) 100%);
+}
+:root[data-theme="light"] .go-countdown--banner { background: rgba(42, 51, 152, 0.08); }
+:root[data-theme="light"] .go-supplier-logo-banner {
+  background: rgba(42, 51, 152, 0.04);
+  border-bottom-color: rgba(42, 51, 152, 0.15);
+}
+
+/* ============================================================
+   8) KONTODATEN — Inhalt des Fullscreen-Panels (.account-*)
+   Panel-Rahmen kommt von .go-panel / .app-panel
+   ============================================================ */
+
+.account-intro {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .account-grid { grid-template-columns: 1fr; }
+}
+
+.account-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: clamp(18px, 3vw, 26px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Profil-Kopf */
+.account-profile-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.account-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px var(--accent-dim-2);
+}
+
+.account-profile-id { flex: 1; min-width: 0; }
+.account-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--text);
+  line-height: 1.2;
+}
+.account-email {
+  margin: 3px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  word-break: break-all;
+}
+
+.account-type-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: var(--radius-full);
+  background: var(--go-bg-dim);
+  color: var(--go-accent);
+  white-space: nowrap;
+}
+.account-type-badge.hidden { display: none !important; }
+
+/* Fakten-Liste (Kontotyp, Verein …) */
+.account-facts {
+  margin: 18px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+.account-fact {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+.account-fact dt { color: var(--muted); margin: 0; }
+.account-fact dd { color: var(--text); margin: 0; font-weight: 600; text-align: right; }
+
+.account-note {
+  margin: 16px 0 0;
+  font-size: 0.78rem;
+  color: var(--faint);
+  line-height: 1.5;
+}
+
+/* Adress-Sektion */
+.account-section-head { margin-bottom: 18px; }
+.account-section-title {
+  margin: 0;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1.35rem;
+  color: var(--text);
+}
+.account-section-sub {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.account-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+}
+.account-field { display: flex; flex-direction: column; gap: 6px; }
+.account-field--wide { grid-column: 1 / -1; }
+
+.account-input {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 11px 13px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+}
+.account-input::placeholder { color: var(--faint); }
+.account-input:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.account-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+@media (max-width: 520px) {
+  .account-form-actions { flex-direction: column-reverse; }
+  .account-form-actions button { width: 100%; }
+}

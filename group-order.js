@@ -66,6 +66,8 @@ async function loadActiveGroupOrders() {
     blockedSuppliers  = new Set(activeGroupOrders.map(o => o.supplier_id).filter(Boolean));
   }
   updateTriggerBar();
+  // NEW LOOK: Hero, Nav-Badge und Sticky-CTA über Event versorgen
+  document.dispatchEvent(new CustomEvent('go:orders-changed', { detail: { orders: activeGroupOrders } }));
   if (document.getElementById('go-panel')?.classList.contains('go-panel--open')) renderPanelContent();
 }
 
@@ -102,10 +104,15 @@ function updateTriggerBar() {
     // FIX #3: o.suppliers?.name statt o.title
     const titles = activeGroupOrders.map(o => escapeHtml(o.suppliers?.name || o.title || 'Sammelbestellung'));
     const label  = count === 1 ? titles[0] : `${count} Sammelbestellungen aktiv`;
+    // NEW LOOK: Countdown zur nächsten Deadline + klarerer CTA-Text
+    const soonest = activeGroupOrders[0];
+    const countdownHtml = soonest
+      ? ` <span class="go-countdown" data-go-countdown="${escapeAttr(soonest.deadline)}"></span>`
+      : '';
     bar.innerHTML = `
-      <div class="go-trigger-bar-text"><span class="go-trigger-dot"></span><span>${label}</span></div>
+      <div class="go-trigger-bar-text"><span class="go-trigger-dot"></span><span>${label}</span>${countdownHtml}</div>
       <div class="go-trigger-bar-actions">
-        <button class="go-open-btn" id="go-trigger-open-btn" type="button">Anzeigen</button>
+        <button class="go-open-btn" id="go-trigger-open-btn" type="button">Zur Sammelbestellung</button>
         <button class="go-create-btn" id="go-trigger-create-btn" type="button">+ Neu</button>
       </div>`;
     document.getElementById('go-trigger-open-btn')  ?.addEventListener('click', openGroupPanel);
@@ -128,6 +135,8 @@ async function activateGoMode(groupOrderId, supplierId, supplierName, supplierLo
   if (typeof updateCartLabelsForGo === 'function') updateCartLabelsForGo(supplierName);
   if (typeof loadGoCart === 'function') await loadGoCart();
   history.pushState({ view: 'go-products' }, '', location.href);
+  // NEW LOOK: Hero/Sticky-CTA ausblenden
+  document.dispatchEvent(new CustomEvent('go:mode-changed'));
 }
 
 async function deactivateGoMode() {
@@ -164,6 +173,8 @@ async function deactivateGoMode() {
     updateFilterUI();
   }
   if (typeof loadCart === 'function') await loadCart();
+  // NEW LOOK: Hero/Sticky-CTA wieder einblenden
+  document.dispatchEvent(new CustomEvent('go:mode-changed'));
 }
 
 
@@ -227,6 +238,7 @@ function renderGoSignalBanner() {
       <span class="go-signal-dot"></span>
       <span class="go-signal-label">Sammelbestellung</span>
       <span class="go-signal-supplier">${escapeHtml(sess.supplierName)}</span>
+      ${sess.deadline ? `<span class="go-countdown go-countdown--banner" data-go-countdown="${escapeAttr(String(sess.deadline))}"></span>` : ''}
     </div>
     <button class="go-signal-leave-btn" id="go-signal-leave" type="button">Verlassen</button>`;
   const ps = document.getElementById('products-section');
@@ -364,7 +376,7 @@ function renderPanelContent() {
       <div class="go-item" data-go-item-id="${escapeHtml(String(o.id))}">
         <div class="go-item-info">
           <p class="go-item-title">${escapeHtml(o.suppliers?.name || o.title || 'Sammelbestellung')}</p>
-          <p class="go-item-deadline">Endet am ${escapeHtml(formatDeadline(o.deadline))}</p>
+          <p class="go-item-deadline">Endet am ${escapeHtml(formatDeadline(o.deadline))} · <span class="go-countdown" data-go-countdown="${escapeAttr(o.deadline)}"></span></p>
         </div>
         <div class="go-item-actions">
           <button class="go-join-btn" data-join-id="${escapeHtml(String(o.id))}" type="button">Mitmachen</button>
@@ -399,7 +411,7 @@ function renderPanelContent() {
         <button type="button" class="go-btn-primary" id="go-create-submit-btn" disabled style="opacity:.4;cursor:not-allowed;">Sammelbestellung erstellen</button>
       </div>
     </div>
-    <p id="go-banner-error" style="margin-top:8px;font-size:.8125rem;color:#ffaab4;"></p>`;
+    <p id="go-banner-error" style="margin-top:8px;font-size:.8125rem;color:var(--danger-text);"></p>`;
 
   body.innerHTML = html;
 
