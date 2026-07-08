@@ -129,7 +129,7 @@ document.addEventListener("auth:changed", async ({ detail: { session, approvalSt
     updateCartBadge(0);
     allProducts = [];
     activeFilters = { category: new Set(), supplier: new Set(), brand: new Set() };
-    buildFilterChips([]);     // setzt alle sidebar-blocks und filter-sections auf hidden
+    buildFilterChips();       // allProducts ist [] → alle sidebar-blocks/filter-sections hidden
     updateFilterUI();         // setzt active-filter-bar auf hidden, Badge auf 0
     // Optional, falls Topbar/Sidebar noch eigene hidden-Klasse brauchen:
     document.getElementById("shop-sidebar-desktop")?.classList.add("hidden");
@@ -315,22 +315,26 @@ function currentChipSource() {
     : allProducts;
 }
 
-function buildFilterChips(products) {
-  const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
-  const suppliers  = [...new Set(products.map(p => p.suppliers?.name).filter(Boolean))].sort();
-  const brands     = [...new Set(products.map(p => p.brands?.name).filter(Boolean))].sort();
-
+// Die erlaubten Filteroptionen werden IMMER aus currentChipSource() abgeleitet.
+// Im GO-Modus liefert das nur Produkte des aktuellen Lieferanten, im normalen
+// Shop alle Produkte. Dadurch sind angezeigte Chips und aktive Filter-Quelle
+// garantiert dieselbe Menge — egal von welchem Aufrufer buildFilterChips kommt.
+// Kein Aufrufer darf mehr eine eigene (globale) Produktliste "einschleusen".
+function buildFilterChips() {
   const sourceProducts = currentChipSource();
+  const categories = [...new Set(sourceProducts.map(p => p.category).filter(Boolean))].sort();
+  const suppliers  = [...new Set(sourceProducts.map(p => p.suppliers?.name).filter(Boolean))].sort();
+  const brands     = [...new Set(sourceProducts.map(p => p.brands?.name).filter(Boolean))].sort();
 
-  renderChips("filter-chips-category",        categories, "category", sourceProducts);
-  renderChips("filter-chips-supplier",         suppliers,  "supplier",  sourceProducts);
-  renderChips("filter-chips-brand",            brands,     "brand",     sourceProducts);
-  renderChips("filter-chips-category-mobile",  categories, "category", sourceProducts);
-  renderChips("filter-chips-supplier-mobile",  suppliers,  "supplier",  sourceProducts);
-  renderChips("filter-chips-brand-mobile",     brands,     "brand",     sourceProducts);
+  renderChips("filter-chips-category",        categories, "category");
+  renderChips("filter-chips-supplier",         suppliers,  "supplier");
+  renderChips("filter-chips-brand",            brands,     "brand");
+  renderChips("filter-chips-category-mobile",  categories, "category");
+  renderChips("filter-chips-supplier-mobile",  suppliers,  "supplier");
+  renderChips("filter-chips-brand-mobile",     brands,     "brand");
 }
 
-function renderChips(containerId, values, filterKey, sourceProducts) {
+function renderChips(containerId, values, filterKey) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -360,7 +364,7 @@ function renderChips(containerId, values, filterKey, sourceProducts) {
       } else {
         activeFilters[key].add(val);
       }
-      buildFilterChips(sourceProducts);
+      buildFilterChips();
       applyFilters();
     });
   });
@@ -409,7 +413,7 @@ function updateFilterUI() {
     tag.innerHTML = `${escapeHtml(label)}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
     tag.addEventListener("click", () => {
       activeFilters[key].delete(label);
-      buildFilterChips(currentChipSource());
+      buildFilterChips();
       applyFilters();
     });
     activeFilterBar.appendChild(tag);
@@ -421,8 +425,11 @@ function updateFilterUI() {
 }
 
 function resetFilters() {
+  // Nur aktive Filterwerte zurücksetzen. Die erlaubten Chips ergeben sich
+  // weiterhin aus currentChipSource() — im GO-Modus also nur die Kategorien
+  // des aktuellen Lieferanten, NICHT die globalen Shop-Kategorien.
   activeFilters = { category: new Set(), supplier: new Set(), brand: new Set() };
-  buildFilterChips(allProducts);
+  buildFilterChips();
   applyFilters();
 }
 
@@ -483,16 +490,16 @@ async function loadGoCart() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    cartList.innerHTML = `<p>Fehler beim Laden: ${escapeHtml(error.message)}</p>`;
+    cartList.innerHTML = `<p>${escapeHtml(t("cart.loadError", { msg: error.message }))}</p>`;
     updateCartBadge(0);
     return;
   }
 
   if (!data || data.length === 0) {
-    cartList.innerHTML = "<p>Noch keine Produkte in dieser Sammelbestellung.</p>";
-    cartTotal.textContent = "Gesamt: 0,00 \u20ac";
+    cartList.innerHTML = `<p>${escapeHtml(t("cart.emptyInGroup"))}</p>`;
+    cartTotal.textContent = `${t("cart.totalLabel")}: ${formatPrice(0)}`;
     updateCartBadge(0);
-    syncDrawer("0,00 \u20ac", 0);
+    syncDrawer(formatPrice(0), 0);
     return;
   }
 
@@ -508,7 +515,7 @@ async function loadGoCart() {
     if (!groupedItems[productId]) {
       groupedItems[productId] = {
         productId,
-        productName:  product.name  || "Produkt",
+        productName:  product.name  || t("common.product"),
         productSku:   product.sku   || null,
         productPrice: Number(product.price_brutto || 0),
         items: []
@@ -528,13 +535,13 @@ async function loadGoCart() {
       const lineTotal = group.productPrice * Number(item.quantity || 0);
       return `<div class="cart-size-row">
         <div class="cart-size-row-left"><div class="cart-line-meta">
-          ${sizeLabel ? `<span class="cart-line-qty">Gr\u00f6\u00dfe: ${escapeHtml(sizeLabel)}</span>` : ""}
-          <span class="cart-line-qty">Menge: ${Number(item.quantity)}</span>
+          ${sizeLabel ? `<span class="cart-line-qty">${escapeHtml(t("cart.sizeColon", { code: sizeLabel }))}</span>` : ""}
+          <span class="cart-line-qty">${escapeHtml(t("cart.qtyColon", { n: Number(item.quantity) }))}</span>
         </div></div>
         <div class="cart-size-row-right">
           <span class="cart-line-total">${formatPrice(lineTotal)}</span>
           <button class="remove-btn icon-btn" data-remove-go-cart="${escapeHtml(String(item.id))}" type="button"
-                  aria-label="Produkt entfernen" title="Entfernen">
+                  aria-label="${escapeHtml(t("product.removeAria"))}" title="${escapeHtml(t("product.removeTitle"))}">
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/>
@@ -556,9 +563,9 @@ async function loadGoCart() {
   }).join("");
 
   const totalText = formatPrice(total);
-  cartTotal.textContent = `Gesamt: ${totalText}`;
+  cartTotal.textContent = `${t("cart.totalLabel")}: ${totalText}`;
   syncDrawer(totalText, totalItems);
-  
+
 }
 
 async function removeFromGoCart(goCartItemId) {
@@ -584,7 +591,8 @@ function setMessage(text, isError = false) {
 const setOrderMessage = setMessage; //in checkout.js als setOrderMessage 
 
 function formatPrice(value) {
-  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(Number(value || 0));
+  const loc = (typeof i18nLocale === "function") ? i18nLocale() : "de-DE";
+  return new Intl.NumberFormat(loc, { style: "currency", currency: "EUR" }).format(Number(value || 0));
 }
 
 // ============================================================
@@ -608,7 +616,16 @@ async function fetchCartItems(userId) {
 // RENDER PRODUCTS
 // ============================================================
 
-const FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='28' fill='%23999'%3EKein Bild%3C/text%3E%3C/svg%3E";
+function buildFallbackImage() {
+  const label = (typeof t === "function") ? t("products.noImage") : "Kein Bild";
+  return "data:image/svg+xml," + encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'>" +
+    "<rect width='600' height='600' fill='#f0f0f0'/>" +
+    "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' " +
+    "font-family='sans-serif' font-size='28' fill='#999'>" + label + "</text></svg>"
+  );
+}
+let FALLBACK_IMAGE = buildFallbackImage();
 
 function renderProducts(products) {
   if (!products || products.length === 0) {
@@ -659,11 +676,11 @@ function renderProducts(products) {
         ${hasSizes ? `
           <div class="size-selector">${sizesHtml}</div>
           <div class="purchase-panel hidden" data-purchase-panel="${safeId}">
-            <label class="qty-box">Menge<input type="number" min="1" value="1" data-qty-for="${safeId}"></label>
-            <button class="small-btn" data-add-to-cart="${safeId}">In den Warenkorb</button>
+            <label class="qty-box">${escapeHtml(t("product.qty"))}<input type="number" min="1" value="1" data-qty-for="${safeId}"></label>
+            <button class="small-btn" data-add-to-cart="${safeId}">${escapeHtml(t("product.addToCart"))}</button>
           </div>` : `
-          <label class="qty-box">Menge<input type="number" min="1" value="1" data-qty-for="${safeId}"></label>
-          <button class="small-btn" data-add-to-cart="${safeId}">In den Warenkorb</button>`}
+          <label class="qty-box">${escapeHtml(t("product.qty"))}<input type="number" min="1" value="1" data-qty-for="${safeId}"></label>
+          <button class="small-btn" data-add-to-cart="${safeId}">${escapeHtml(t("product.addToCart"))}</button>`}
       </div>
     </article>`;
   }).join("");
@@ -709,10 +726,10 @@ function renderProducts(products) {
       const hasSizeSelector  = card?.querySelector(".size-selector");
 
       if (hasSizeSelector && (!selectedSizeId || !selectedSizeType)) {
-        setMessage("Bitte zuerst eine Groesse auswaehlen.", true); return;
+        setMessage(t("product.selectSize"), true); return;
       }
       if (!quantity || quantity < 1) {
-        setMessage("Bitte eine gueltige Menge eingeben.", true); return;
+        setMessage(t("product.validQty"), true); return;
       }
 
       button.disabled = true;
@@ -773,17 +790,17 @@ async function loadProducts() {
     .order("category", { ascending: true });
 
   if (error) {
-    productsList.innerHTML = `<p>Fehler beim Laden der Produkte: ${escapeHtml(error.message)}</p>`;
+    productsList.innerHTML = `<p>${escapeHtml(t("products.loadError", { msg: error.message }))}</p>`;
     return;
   }
 
   if (!data || data.length === 0) {
-    productsList.innerHTML = "<p>Noch keine Produkte vorhanden.</p>";
+    productsList.innerHTML = `<p>${escapeHtml(t("products.none"))}</p>`;
     return;
   }
 
   allProducts = data;
-  buildFilterChips(allProducts);
+  buildFilterChips();
   renderProducts(allProducts);
 }
 
@@ -793,7 +810,7 @@ async function loadProducts() {
 
 async function addToCart(productId, quantity, selectedSize) {
   const user = await getCurrentUser();
-  if (!user) { setMessage("Du musst eingeloggt sein.", true); return; }
+  if (!user) { setMessage(t("cart.loginRequired"), true); return; }
 
   const isClothing     = selectedSize?.sizeType === "clothing";
   const isWeight       = selectedSize?.sizeType === "weight";
@@ -815,13 +832,13 @@ async function addToCart(productId, quantity, selectedSize) {
     else               goQuery = goQuery.is("clothing_size_id", null).is("weight_size_id", null);
 
     const { data: existing, error: goErr } = await goQuery.maybeSingle();
-    if (goErr) { setMessage(`Fehler: ${goErr.message}`, true); return; }
+    if (goErr) { setMessage(t("cart.error", { msg: goErr.message }), true); return; }
 
     if (existing) {
       const { error: updErr } = await db.from("group_order_cart")
         .update({ quantity: Number(existing.quantity || 0) + Number(quantity || 0) })
         .eq("id", existing.id);
-      if (updErr) { setMessage(`Fehler: ${updErr.message}`, true); return; }
+      if (updErr) { setMessage(t("cart.error", { msg: updErr.message }), true); return; }
     } else {
       const { error: insErr } = await db.from("group_order_cart").insert({
         user_id:          user.id,
@@ -832,10 +849,10 @@ async function addToCart(productId, quantity, selectedSize) {
         weight_size_id:   weightSizeId,
         confirmed:        false
       });
-      if (insErr) { setMessage(`Fehler: ${insErr.message}`, true); return; }
+      if (insErr) { setMessage(t("cart.error", { msg: insErr.message }), true); return; }
     }
 
-    setMessage("Produkt zur Sammelbestellung hinzugef\u00fcgt.");
+    setMessage(t("cart.addedToGroup"));
     await loadGoCart();
     cartSection.classList.remove("cart-bump");
     void cartSection.offsetWidth;
@@ -851,22 +868,22 @@ async function addToCart(productId, quantity, selectedSize) {
   else               existingQuery = existingQuery.is("clothing_size_id", null).is("weight_size_id", null);
 
   const { data: existingItem, error: existingError } = await existingQuery.maybeSingle();
-  if (existingError) { setMessage(`Fehler beim Pruefen des Warenkorbs: ${existingError.message}`, true); return; }
+  if (existingError) { setMessage(t("cart.checkError", { msg: existingError.message }), true); return; }
 
   if (existingItem) {
     const { error: updateError } = await db.from("cart_items")
       .update({ quantity: Number(existingItem.quantity || 0) + Number(quantity || 0) })
       .eq("id", existingItem.id);
-    if (updateError) { setMessage(`Fehler beim Aktualisieren des Warenkorbs: ${updateError.message}`, true); return; }
+    if (updateError) { setMessage(t("cart.updateError", { msg: updateError.message }), true); return; }
   } else {
     const { error: insertError } = await db.from("cart_items").insert({
       user_id: user.id, product_id: productId, quantity,
       clothing_size_id: clothingSizeId, weight_size_id: weightSizeId
     });
-    if (insertError) { setMessage(`Fehler beim Speichern im Warenkorb: ${insertError.message}`, true); return; }
+    if (insertError) { setMessage(t("cart.saveError", { msg: insertError.message }), true); return; }
   }
 
-  setMessage("Produkt zum Warenkorb hinzugefuegt.");
+  setMessage(t("cart.added"));
   await loadCart(productId);
   cartSection.classList.remove("cart-bump");
   void cartSection.offsetWidth;
@@ -879,13 +896,13 @@ async function loadCart(highlightProductId = null) {
 
   const { data, error } = await fetchCartItems(user.id);
 
-  if (error) { cartList.innerHTML = `<p>Fehler beim Laden des Warenkorbs: ${escapeHtml(error.message)}</p>`; cartTotal.textContent = ""; updateCartBadge(0); return []; }
+  if (error) { cartList.innerHTML = `<p>${escapeHtml(t("cart.loadCartError", { msg: error.message }))}</p>`; cartTotal.textContent = ""; updateCartBadge(0); return []; }
 
   if (!data || data.length === 0) {
-    cartList.innerHTML = "<p>Dein Warenkorb ist noch leer.</p>";
-    cartTotal.textContent = "Gesamt: 0,00 \u20ac";
+    cartList.innerHTML = `<p>${escapeHtml(t("cart.emptyYet"))}</p>`;
+    cartTotal.textContent = `${t("cart.totalLabel")}: ${formatPrice(0)}`;
     updateCartBadge(0);
-    syncDrawer("0,00 \u20ac", 0);
+    syncDrawer(formatPrice(0), 0);
     return [];
   }
 
@@ -899,7 +916,7 @@ async function loadCart(highlightProductId = null) {
     const product = item.products || {};
     const productId = item.product_id;
     if (!groupedItems[productId]) {
-      groupedItems[productId] = { productId, productName: product.name || "Produkt", productSku: product.sku || null, productPrice: Number(product.price_brutto || 0), items: [] };
+      groupedItems[productId] = { productId, productName: product.name || t("common.product"), productSku: product.sku || null, productPrice: Number(product.price_brutto || 0), items: [] };
     }
     groupedItems[productId].items.push(item);
   });
@@ -913,12 +930,12 @@ async function loadCart(highlightProductId = null) {
       const lineTotal = group.productPrice * Number(item.quantity || 0);
       return `<div class="cart-size-row">
         <div class="cart-size-row-left"><div class="cart-line-meta">
-          ${sizeLabel ? `<span class="cart-line-qty">Groesse: ${escapeHtml(sizeLabel)}</span>` : ""}
-          <span class="cart-line-qty">Menge: ${Number(item.quantity)}</span>
+          ${sizeLabel ? `<span class="cart-line-qty">${escapeHtml(t("cart.sizeColon", { code: sizeLabel }))}</span>` : ""}
+          <span class="cart-line-qty">${escapeHtml(t("cart.qtyColon", { n: Number(item.quantity) }))}</span>
         </div></div>
         <div class="cart-size-row-right">
           <span class="cart-line-total">${formatPrice(lineTotal)}</span>
-          <button class="remove-btn icon-btn" data-remove-cart="${escapeHtml(String(item.id))}" type="button" aria-label="Produkt aus dem Warenkorb entfernen" title="Entfernen">
+          <button class="remove-btn icon-btn" data-remove-cart="${escapeHtml(String(item.id))}" type="button" aria-label="${escapeHtml(t("product.removeCartAria"))}" title="${escapeHtml(t("product.removeTitle"))}">
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
             </svg>
@@ -937,7 +954,7 @@ async function loadCart(highlightProductId = null) {
   }).join("");
 
   const totalText = formatPrice(total);
-  cartTotal.textContent = `Gesamt: ${totalText}`;
+  cartTotal.textContent = `${t("cart.totalLabel")}: ${totalText}`;
   syncDrawer(totalText, totalItems);
 
   if (highlightProductId && !isMobile()) {
@@ -961,14 +978,30 @@ async function loadCart(highlightProductId = null) {
 
 async function removeFromCart(cartItemId) {
   const { error } = await db.from("cart_items").delete().eq("id", cartItemId);
-  if (error) { setMessage(`Fehler beim Entfernen: ${error.message}`, true); return; }
-  setMessage("Produkt aus dem Warenkorb entfernt.");
+  if (error) { setMessage(t("cart.removeError", { msg: error.message }), true); return; }
+  setMessage(t("cart.removed"));
   await loadCart();
 }
 
 // ============================================================
 // Browser-Zurück-Taste
 // ============================================================
+
+// ============================================================
+// Sprachwechsel: Fallback-Bild + dynamische Listen neu rendern
+// ============================================================
+
+document.addEventListener('i18n:changed', async () => {
+  FALLBACK_IMAGE = buildFallbackImage();
+  if (Array.isArray(allProducts) && allProducts.length > 0) {
+    applyFilters(); // rendert Produkte mit aktiven Filtern neu
+  }
+  if (window.goSession) {
+    if (typeof loadGoCart === 'function') await loadGoCart();
+  } else {
+    if (typeof loadCart === 'function') await loadCart();
+  }
+});
 
 window.addEventListener('popstate', () => {
   if (!checkoutSection.classList.contains('hidden')) {

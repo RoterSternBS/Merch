@@ -169,6 +169,25 @@
 .go-signal-leave-btn:hover  { background: rgba(224,85,105,.22); transform: none; }
 .go-signal-leave-btn:active { transform: scale(.96); opacity: 1; }
 
+/* Mobile: Banner stapeln, damit „Verlassen" UNTER dem Text sitzt
+   (vorher überlappte der Button den Countdown-Text auf schmalen Screens). */
+@media (max-width: 640px) {
+  .go-signal-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .go-signal-left { width: 100%; }
+  .go-signal-leave-btn { align-self: flex-end; }
+}
+
+/* Prominenter „Neue Sammelbestellung"-Button oben im Übersichts-Panel */
+.go-new-cta {
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
 /* ============================================================
    GO SUPPLIER LOGO BANNER
 ============================================================ */

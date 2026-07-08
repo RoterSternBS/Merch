@@ -147,19 +147,19 @@ authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const email    = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
-  if (!email || !password) { setAuthMessage("Bitte E-Mail und Passwort eingeben.", true); return; }
+  if (!email || !password) { setAuthMessage(t("login.enterCredentials"), true); return; }
 
   const loginBtn = document.getElementById("login-btn");
   loginBtn.disabled = true;
-  loginBtn.textContent = "Wird angemeldet…";
+  loginBtn.textContent = t("login.loggingIn");
   try {
     const { data, error } = await db.auth.signInWithPassword({ email, password });
     if (error) { setAuthMessage(error.message, true); return; }
-    if (!data?.session?.user) { setAuthMessage("Login war erfolgreich, aber es wurde keine Session gefunden.", true); return; }
+    if (!data?.session?.user) { setAuthMessage(t("login.noSession"), true); return; }
     setAuthMessage("");
   } finally {
     loginBtn.disabled = false;
-    loginBtn.textContent = "Einloggen";
+    loginBtn.textContent = t("login.submit");
   }
 });
 
@@ -188,7 +188,7 @@ registerForm.addEventListener("submit", async (event) => {
   const account_type = document.querySelector("input[name='account_type']:checked")?.value || "person";
 
   if (!email || !password || !first_name || !last_name || !street || !house_number || !postal_code || !city) {
-    setRegMessage("Bitte alle Pflichtfelder ausfüllen.", true);
+    setRegMessage(t("reg.fillRequired"), true);
     return;
   }
 
@@ -203,7 +203,7 @@ registerForm.addEventListener("submit", async (event) => {
     const register_number            = document.getElementById("reg-org-register").value.trim();
     const organization_email         = document.getElementById("reg-org-email").value.trim();
     if (!organization_name || !organization_street || !organization_house_number || !organization_city || !organization_postal_code || !register_number || !organization_email) {
-      setRegMessage("Bitte alle Vereinsdaten ausfüllen.", true);
+      setRegMessage(t("reg.fillOrg"), true);
       return;
     }
     Object.assign(metadata, { organization_name, organization_street, organization_house_number, organization_city, organization_postal_code, register_number, organization_email });
@@ -211,7 +211,7 @@ registerForm.addEventListener("submit", async (event) => {
 
   const submitBtn = document.getElementById("register-submit-btn");
   submitBtn.disabled = true;
-  submitBtn.textContent = "Wird registriert…";
+  submitBtn.textContent = t("reg.registering");
 
   const { data, error } = await db.auth.signUp({
     email,
@@ -223,15 +223,15 @@ registerForm.addEventListener("submit", async (event) => {
   });
 
   submitBtn.disabled = false;
-  submitBtn.textContent = "Registrieren";
+  submitBtn.textContent = t("reg.submit");
 
   if (error) { setRegMessage(error.message, true); return; }
   if (data?.user?.identities?.length === 0) {
-    setRegMessage("Diese E-Mail ist bereits registriert.", true);
+    setRegMessage(t("reg.emailExists"), true);
     return;
   }
 
-  setRegMessage("Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse. Danach wird dein Konto von einem Admin freigeschaltet.");
+  setRegMessage(t("reg.success"));
   registerForm.reset();
   orgFields.classList.add("hidden");
 
@@ -239,7 +239,7 @@ registerForm.addEventListener("submit", async (event) => {
   // damit die Erfolgsmeldung noch kurz lesbar ist.
   setTimeout(() => {
     showLoginView();
-    setAuthMessage("Registrierung erfolgreich. Bitte E-Mail bestätigen.");
+    setAuthMessage(t("reg.successShort"));
   }, 2500);
 });
 
@@ -249,6 +249,6 @@ registerForm.addEventListener("submit", async (event) => {
 
 logoutBtn.addEventListener("click", async () => {
   const { error } = await db.auth.signOut();
-  if (error) { setAuthMessage(`Fehler beim Abmelden: ${error.message}`, true); return; }
+  if (error) { setAuthMessage(t("login.logoutError", { msg: error.message }), true); return; }
   showLoginView();
 });

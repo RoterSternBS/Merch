@@ -6,7 +6,8 @@
   <meta name="description" content="Vereinsshop und Sammelbestellungen für Vereinsmitglieder.">
   <meta name="theme-color" content="#0d0819">
   <title>Roter Stern BS · Vereins-Merch</title>
-  <!-- NEW LOOK: Theme (auto/light/dark) vor dem ersten Paint setzen — verhindert Flash -->
+  <!-- NEW LOOK: Theme (auto/light/dark) + Sprache (de/en/ar) vor dem ersten Paint
+       setzen — verhindert Flash (auch der Schreibrichtung bei Arabisch). -->
   <script>
     (function () {
       try {
@@ -17,6 +18,28 @@
         document.documentElement.setAttribute('data-theme', resolved);
       } catch (e) {
         document.documentElement.setAttribute('data-theme', 'dark');
+      }
+      // Sprache früh bestimmen: gespeicherte Wahl > Systemsprache > Deutsch
+      try {
+        var LANGS = ['de', 'en', 'ar'];
+        var lang = null;
+        var stored = localStorage.getItem('rs-lang');
+        if (stored && LANGS.indexOf(stored) !== -1) {
+          lang = stored;
+        } else {
+          var cands = (navigator.languages && navigator.languages.length)
+            ? navigator.languages : [navigator.language || 'de'];
+          for (var i = 0; i < cands.length; i++) {
+            var base = String(cands[i]).toLowerCase().split('-')[0];
+            if (LANGS.indexOf(base) !== -1) { lang = base; break; }
+          }
+        }
+        if (!lang) lang = 'de';
+        document.documentElement.setAttribute('lang', lang);
+        document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+      } catch (e) {
+        document.documentElement.setAttribute('lang', 'de');
+        document.documentElement.setAttribute('dir', 'ltr');
       }
     })();
   </script>
@@ -32,6 +55,7 @@
   <link rel="stylesheet" href="./group-checkout.css">
   <link rel="stylesheet" href="./new-look.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="./i18n.js"></script>
   <script defer src="auth.js"></script>
   <script defer src="./app.js"></script>
   <script defer src="./checkout.js"></script>
@@ -57,43 +81,30 @@
         </span>
         <span class="header-brand-text">
           <span class="header-title">Roter Stern <b>BS</b></span>
-          <span class="header-subtitle">Vereins · Merch</span>
+          <span class="header-subtitle" data-i18n="header.subtitle">Vereins · Merch</span>
         </span>
       </a>
 
       <!-- NEW LOOK: Hauptnavigation (zentriert) -->
       <nav id="header-nav" class="header-nav hidden" aria-label="Hauptnavigation">
-        <button id="nav-shop-btn" class="header-nav-btn is-active" type="button">Shop</button>
+        <button id="nav-shop-btn" class="header-nav-btn is-active" type="button" data-i18n="nav.shop">Shop</button>
         <button id="nav-go-btn" class="header-nav-btn" type="button">
           <span class="header-nav-dot" aria-hidden="true"></span>
-          Sammelbestellungen
+          <span data-i18n="nav.groupOrders">Sammelbestellungen</span>
           <span id="nav-go-count" class="header-nav-badge hidden">0</span>
         </button>
       </nav>
 
-      <!-- Rechts: Theme-Toggle · Warenkorb · Benutzermenü -->
+      <!-- Rechts: Warenkorb · Benutzermenü
+           (Sprach- und Theme-Umschalter liegen jetzt im Benutzer-Dropdown,
+            beim Login in .auth-switchers) -->
       <div class="header-actions">
-
-        <!-- NEW LOOK: Theme-Umschalter (Auto / Hell / Dunkel) -->
-        <div class="theme-toggle" id="theme-toggle" role="group" aria-label="Farbschema wählen">
-          <button class="theme-opt is-active" data-theme-choice="auto" type="button" aria-pressed="true" title="Automatisch (System)">Auto</button>
-          <button class="theme-opt" data-theme-choice="light" type="button" aria-pressed="false" aria-label="Helles Design" title="Hell">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="4"/>
-              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
-            </svg>
-          </button>
-          <button class="theme-opt" data-theme-choice="dark" type="button" aria-pressed="false" aria-label="Dunkles Design" title="Dunkel">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
-            </svg>
-          </button>
-        </div>
 
         <button
           id="cart-badge-btn"
           class="cart-btn hidden"
           type="button"
+          data-i18n-attr="aria-label:cart.openAria"
           aria-label="Warenkorb öffnen"
           aria-expanded="false"
         >
@@ -113,7 +124,8 @@
             type="button"
             aria-haspopup="true"
             aria-expanded="false"
-            aria-label="Benutzermenu öffnen"
+            data-i18n-attr="aria-label:user.menuOpenAria"
+            aria-label="Benutzermenü öffnen"
           >
             <span id="user-menu-avatar" class="user-menu-avatar" aria-hidden="true"></span>
             <span id="user-menu-email" class="user-menu-email"></span>
@@ -132,19 +144,7 @@
                 <path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/>
                 <path d="M8 11h8M8 15h5"/>
               </svg>
-              Meine Bestellungen
-            </button>
-
-            <!-- NEW LOOK: Meine Sammelbestellungen -->
-            <button id="my-group-orders-btn" class="user-dropdown-item" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              </svg>
-              Meine Sammelbestellungen
-              <span id="my-go-badge" class="user-dropdown-badge hidden">0</span>
+              <span data-i18n="user.myOrders">Meine Bestellungen</span>
             </button>
 
             <!-- NEW LOOK: Kontodaten — enthält die Adressänderung.
@@ -156,12 +156,44 @@
                 <path d="M4 21v-1a6 6 0 0 1 12 0v1"/>
               </svg>
               <span class="user-dropdown-item-stack">
-                Kontodaten
-                <span class="user-dropdown-item-sub">Profil · Adresse ändern</span>
+                <span data-i18n="user.account">Kontodaten</span>
+                <span class="user-dropdown-item-sub" data-i18n="user.accountSub">Profil · Adresse ändern</span>
               </span>
             </button>
+
             <div class="user-dropdown-divider"></div>
-            
+
+            <!-- Einstellungen: Sprache + Farbschema (aus dem Header hierher verschoben) -->
+            <div class="user-dropdown-settings">
+              <div class="user-dropdown-setting-row">
+                <span class="user-dropdown-setting-label" data-i18n="settings.language">Sprache</span>
+                <div class="lang-toggle" id="lang-toggle" role="group" data-i18n-attr="aria-label:lang.label" aria-label="Sprache wählen">
+                  <button class="lang-opt" data-lang-choice="de" type="button" aria-pressed="false" data-i18n-attr="title:lang.deTitle" title="Deutsch">DE</button>
+                  <button class="lang-opt" data-lang-choice="en" type="button" aria-pressed="false" data-i18n-attr="title:lang.enTitle" title="English">EN</button>
+                  <button class="lang-opt" data-lang-choice="ar" type="button" aria-pressed="false" data-i18n-attr="title:lang.arTitle" title="العربية" lang="ar">ع</button>
+                </div>
+              </div>
+              <div class="user-dropdown-setting-row">
+                <span class="user-dropdown-setting-label" data-i18n="settings.theme">Design</span>
+                <div class="theme-toggle" id="theme-toggle" role="group" data-i18n-attr="aria-label:theme.label" aria-label="Farbschema wählen">
+                  <button class="theme-opt is-active" data-theme-choice="auto" type="button" aria-pressed="true" data-i18n-attr="title:theme.autoTitle" data-i18n="theme.auto" title="Automatisch (System)">Auto</button>
+                  <button class="theme-opt" data-theme-choice="light" type="button" aria-pressed="false" data-i18n-attr="aria-label:theme.lightAria;title:theme.lightTitle" aria-label="Helles Design" title="Hell">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="4"/>
+                      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+                    </svg>
+                  </button>
+                  <button class="theme-opt" data-theme-choice="dark" type="button" aria-pressed="false" data-i18n-attr="aria-label:theme.darkAria;title:theme.darkTitle" aria-label="Dunkles Design" title="Dunkel">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="user-dropdown-divider"></div>
+
  <!-- Button logout -->
             <button id="logout-btn" class="user-dropdown-logout hidden" type="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -170,7 +202,7 @@
                 <polyline points="16 17 21 12 16 7"/>
                 <line x1="21" y1="12" x2="9" y2="12"/>
               </svg>
-              Abmelden
+              <span data-i18n="user.logout">Abmelden</span>
             </button>
           </div>
         </div><!-- /.header-user -->
@@ -188,6 +220,31 @@
     ====================================================== -->
     <section class="auth-section" id="auth-section">
 
+      <!-- Sichtbarer Sprach-/Theme-Umschalter auf der Login-Seite
+           (ausgeloggt gibt es kein Benutzer-Dropdown). Bleibt via
+           Klassen automatisch mit den Dropdown-Umschaltern synchron. -->
+      <div class="auth-switchers">
+        <div class="lang-toggle" role="group" data-i18n-attr="aria-label:lang.label" aria-label="Sprache wählen">
+          <button class="lang-opt" data-lang-choice="de" type="button" aria-pressed="false" data-i18n-attr="title:lang.deTitle" title="Deutsch">DE</button>
+          <button class="lang-opt" data-lang-choice="en" type="button" aria-pressed="false" data-i18n-attr="title:lang.enTitle" title="English">EN</button>
+          <button class="lang-opt" data-lang-choice="ar" type="button" aria-pressed="false" data-i18n-attr="title:lang.arTitle" title="العربية" lang="ar">ع</button>
+        </div>
+        <div class="theme-toggle" role="group" data-i18n-attr="aria-label:theme.label" aria-label="Farbschema wählen">
+          <button class="theme-opt is-active" data-theme-choice="auto" type="button" aria-pressed="true" data-i18n-attr="title:theme.autoTitle" data-i18n="theme.auto" title="Automatisch (System)">Auto</button>
+          <button class="theme-opt" data-theme-choice="light" type="button" aria-pressed="false" data-i18n-attr="aria-label:theme.lightAria;title:theme.lightTitle" aria-label="Helles Design" title="Hell">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+            </svg>
+          </button>
+          <button class="theme-opt" data-theme-choice="dark" type="button" aria-pressed="false" data-i18n-attr="aria-label:theme.darkAria;title:theme.darkTitle" aria-label="Dunkles Design" title="Dunkel">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
       <!-- ------------------------------------------------
            VIEW 1: LOGIN
       ------------------------------------------------ -->
@@ -199,28 +256,28 @@
             <circle cx="20" cy="30" r="1.8" fill="currentColor"/>
           </svg>
         </div>
-        <h1 class="auth-headline">Willkommen</h1>
-        <p class="auth-sub">Melde dich an, um die Sammelbestellung einzusehen.</p>
+        <h1 class="auth-headline" data-i18n="login.welcome">Willkommen</h1>
+        <p class="auth-sub" data-i18n="login.sub">Melde dich an, um die Sammelbestellung einzusehen.</p>
 
         <form id="auth-form" class="auth-form" novalidate>
           <div class="form-field">
-            <label for="email" class="form-label">E-Mail</label>
+            <label for="email" class="form-label" data-i18n="login.email">E-Mail</label>
             <input type="email" id="email" name="email"
-                   placeholder="name@beispiel.de"
+                   placeholder="name@beispiel.de" data-i18n-attr="placeholder:login.emailPh"
                    required autocomplete="email">
           </div>
           <div class="form-field">
-            <label for="password" class="form-label">Passwort</label>
+            <label for="password" class="form-label" data-i18n="login.password">Passwort</label>
             <input type="password" id="password" name="password"
-                   placeholder="Passwort"
+                   placeholder="Passwort" data-i18n-attr="placeholder:login.passwordPh"
                    required autocomplete="current-password">
           </div>
-          <button type="submit" id="login-btn" class="btn-primary btn-full">Einloggen</button>
+          <button type="submit" id="login-btn" class="btn-primary btn-full" data-i18n="login.submit">Einloggen</button>
         </form>
 
-        <div class="auth-divider"><span>oder</span></div>
+        <div class="auth-divider"><span data-i18n="login.or">oder</span></div>
 
-        <button type="button" id="signup-btn" class="btn-outline btn-full">Neu registrieren</button>
+        <button type="button" id="signup-btn" class="btn-outline btn-full" data-i18n="login.signup">Neu registrieren</button>
 
         <p id="auth-message" class="auth-message"></p>
       </div>
@@ -236,20 +293,20 @@
             <circle cx="20" cy="30" r="1.8" fill="currentColor"/>
           </svg>
         </div>
-        <h1 class="auth-headline">Konto erstellen</h1>
-        <p class="auth-sub">Fülle alle Pflichtfelder aus. Dein Konto wird nach der Registrierung von einem Admin freigeschaltet.</p>
+        <h1 class="auth-headline" data-i18n="reg.title">Konto erstellen</h1>
+        <p class="auth-sub" data-i18n="reg.sub">Fülle alle Pflichtfelder aus. Dein Konto wird nach der Registrierung von einem Admin freigeschaltet.</p>
 
         <form id="register-form" class="auth-form" novalidate>
 
           <!-- Kontotyp -->
           <fieldset class="form-fieldset">
-            <legend class="form-label">Kontotyp</legend>
+            <legend class="form-label" data-i18n="reg.accountType">Kontotyp</legend>
             <div class="form-radio-group">
               <label class="form-radio-label">
-                <input type="radio" name="account_type" value="person" checked> Person
+                <input type="radio" name="account_type" value="person" checked> <span data-i18n="reg.person">Person</span>
               </label>
               <label class="form-radio-label">
-                <input type="radio" name="account_type" value="organization"> Organisation
+                <input type="radio" name="account_type" value="organization"> <span data-i18n="reg.org">Organisation</span>
               </label>
             </div>
           </fieldset>
@@ -257,113 +314,113 @@
           <!-- Persönliche Daten -->
           <div class="form-row">
             <div class="form-field">
-              <label for="reg-first-name" class="form-label">Vorname</label>
+              <label for="reg-first-name" class="form-label" data-i18n="reg.firstName">Vorname</label>
               <input type="text" id="reg-first-name" name="first_name"
-                     placeholder="Max" required autocomplete="given-name">
+                     placeholder="Max" data-i18n-attr="placeholder:reg.firstNamePh" required autocomplete="given-name">
             </div>
             <div class="form-field">
-              <label for="reg-last-name" class="form-label">Nachname</label>
+              <label for="reg-last-name" class="form-label" data-i18n="reg.lastName">Nachname</label>
               <input type="text" id="reg-last-name" name="last_name"
-                     placeholder="Mustermann" required autocomplete="family-name">
+                     placeholder="Mustermann" data-i18n-attr="placeholder:reg.lastNamePh" required autocomplete="family-name">
             </div>
           </div>
 
           <!-- Zugangsdaten -->
           <div class="form-field">
-            <label for="reg-email" class="form-label">E-Mail</label>
+            <label for="reg-email" class="form-label" data-i18n="reg.email">E-Mail</label>
             <input type="email" id="reg-email" name="email"
-                   placeholder="name@beispiel.de"
+                   placeholder="name@beispiel.de" data-i18n-attr="placeholder:reg.emailPh"
                    required autocomplete="email">
           </div>
           <div class="form-field">
-            <label for="reg-password" class="form-label">Passwort</label>
+            <label for="reg-password" class="form-label" data-i18n="reg.password">Passwort</label>
             <input type="password" id="reg-password" name="password"
-                   placeholder="Mindestens 6 Zeichen"
+                   placeholder="Mindestens 6 Zeichen" data-i18n-attr="placeholder:reg.passwordPh"
                    required minlength="6" autocomplete="new-password">
           </div>
 
           <!-- Adresse -->
           <div class="form-row form-row--address">
             <div class="form-field">
-              <label for="reg-street" class="form-label">Straße</label>
+              <label for="reg-street" class="form-label" data-i18n="reg.street">Straße</label>
               <input type="text" id="reg-street" name="street"
-                     placeholder="Musterstraße" required autocomplete="street-address">
+                     placeholder="Musterstraße" data-i18n-attr="placeholder:reg.streetPh" required autocomplete="street-address">
             </div>
             <div class="form-field">
-              <label for="reg-house" class="form-label">Hausnr.</label>
+              <label for="reg-house" class="form-label" data-i18n="reg.house">Hausnr.</label>
               <input type="text" id="reg-house" name="house_number"
-                     placeholder="12" required autocomplete="off">
+                     placeholder="12" data-i18n-attr="placeholder:reg.housePh" required autocomplete="off">
             </div>
           </div>
 
           <div class="form-row form-row--postal">
             <div class="form-field">
-              <label for="reg-postal" class="form-label">PLZ</label>
+              <label for="reg-postal" class="form-label" data-i18n="reg.postal">PLZ</label>
               <input type="text" id="reg-postal" name="postal_code"
-                     placeholder="13121" required autocomplete="postal-code"
+                     placeholder="13121" data-i18n-attr="placeholder:reg.postalPh" required autocomplete="postal-code"
                      inputmode="numeric" maxlength="5">
             </div>
             <div class="form-field">
-              <label for="reg-city" class="form-label">Ort</label>
+              <label for="reg-city" class="form-label" data-i18n="reg.city">Ort</label>
               <input type="text" id="reg-city" name="city"
-                     placeholder="Musterstadt" required autocomplete="address-level2">
+                     placeholder="Musterstadt" data-i18n-attr="placeholder:reg.cityPh" required autocomplete="address-level2">
             </div>
           </div>
 
           <!-- Organisationsdaten (nur wenn account_type = organization) -->
           <div id="org-fields" class="org-fields hidden">
-            <div class="form-divider"><span>Vereinsdaten</span></div>
+            <div class="form-divider"><span data-i18n="reg.orgData">Vereinsdaten</span></div>
 
             <div class="form-field">
-              <label for="reg-org-name" class="form-label">Vereinsname</label>
+              <label for="reg-org-name" class="form-label" data-i18n="reg.orgName">Vereinsname</label>
               <input type="text" id="reg-org-name" name="organization_name"
-                     placeholder="Musterverein e.V." autocomplete="organization">
+                     placeholder="Musterverein e.V." data-i18n-attr="placeholder:reg.orgNamePh" autocomplete="organization">
             </div>
 
             <div class="form-row form-row--address">
               <div class="form-field">
-                <label for="reg-org-street" class="form-label">Vereinssitz (Straße)</label>
-                <input type="text" id="reg-org-street" name="organization_street" placeholder="Musterweg">
+                <label for="reg-org-street" class="form-label" data-i18n="reg.orgStreet">Vereinssitz (Straße)</label>
+                <input type="text" id="reg-org-street" name="organization_street" placeholder="Musterweg" data-i18n-attr="placeholder:reg.orgStreetPh">
               </div>
               <div class="form-field">
-                <label for="reg-org-house" class="form-label">Hausnr.</label>
-                <input type="text" id="reg-org-house" name="organization_house_number" placeholder="161">
+                <label for="reg-org-house" class="form-label" data-i18n="reg.orgHouse">Hausnr.</label>
+                <input type="text" id="reg-org-house" name="organization_house_number" placeholder="161" data-i18n-attr="placeholder:reg.orgHousePh">
               </div>
             </div>
 
             <div class="form-row form-row--postal">
               <div class="form-field">
-                <label for="reg-org-postal" class="form-label">PLZ</label>
+                <label for="reg-org-postal" class="form-label" data-i18n="reg.orgPostal">PLZ</label>
                 <input type="text" id="reg-org-postal" name="organization_postal"
-                       placeholder="13121" inputmode="numeric" maxlength="5">
+                       placeholder="13121" data-i18n-attr="placeholder:reg.orgPostalPh" inputmode="numeric" maxlength="5">
               </div>
               <div class="form-field">
-                <label for="reg-org-city" class="form-label">Ort</label>
+                <label for="reg-org-city" class="form-label" data-i18n="reg.orgCity">Ort</label>
                 <input type="text" id="reg-org-city" name="organization_city"
-                       placeholder="Musterstadt">
+                       placeholder="Musterstadt" data-i18n-attr="placeholder:reg.orgCityPh">
               </div>
             </div>
 
             <div class="form-field">
-              <label for="reg-org-register" class="form-label">Vereinsregisternummer</label>
+              <label for="reg-org-register" class="form-label" data-i18n="reg.registerNumber">Vereinsregisternummer</label>
               <input type="text" id="reg-org-register" name="register_number"
-                     placeholder="VR 12345">
+                     placeholder="VR 12345" data-i18n-attr="placeholder:reg.registerNumberPh">
             </div>
             <div class="form-field">
-              <label for="reg-org-email" class="form-label">Vereins-E-Mail</label>
+              <label for="reg-org-email" class="form-label" data-i18n="reg.orgEmail">Vereins-E-Mail</label>
               <input type="email" id="reg-org-email" name="organization_email"
-                     placeholder="info@verein.de">
+                     placeholder="info@verein.de" data-i18n-attr="placeholder:reg.orgEmailPh">
             </div>
           </div>
 
-          <button type="submit" id="register-submit-btn" class="btn-primary btn-full">Registrieren</button>
+          <button type="submit" id="register-submit-btn" class="btn-primary btn-full" data-i18n="reg.submit">Registrieren</button>
         </form>
 
         <p id="register-message" class="auth-message"></p>
 
-        <div class="auth-divider"><span>oder</span></div>
+        <div class="auth-divider"><span data-i18n="login.or">oder</span></div>
 
-        <button type="button" id="back-to-login-btn" class="btn-outline btn-full">Zurück zum Login</button>
+        <button type="button" id="back-to-login-btn" class="btn-outline btn-full" data-i18n="reg.backToLogin">Zurück zum Login</button>
       </div>
 
     </section>
@@ -380,9 +437,9 @@
             <path d="M20 15v5l3 3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <h1 class="auth-headline">Konto wird geprüft</h1>
-        <p class="auth-sub">Deine Registrierung war erfolgreich. Ein Admin schaltet dein Konto in Kürze frei. Du wirst automatisch weitergeleitet sobald dein Konto freigegeben wurde.</p>
-        <button id="pending-logout-btn" type="button" class="btn-outline btn-full" onclick="document.getElementById('logout-btn').click()">
+        <h1 class="auth-headline" data-i18n="pending.title">Konto wird geprüft</h1>
+        <p class="auth-sub" data-i18n="pending.sub">Deine Registrierung war erfolgreich. Ein Admin schaltet dein Konto in Kürze frei. Du wirst automatisch weitergeleitet sobald dein Konto freigegeben wurde.</p>
+        <button id="pending-logout-btn" type="button" class="btn-outline btn-full" data-i18n="pending.logout" onclick="document.getElementById('logout-btn').click()">
           Abmelden
         </button>
       </div>
@@ -394,38 +451,38 @@
     ====================================================== -->
     <section id="shop-hero" class="shop-hero hidden" aria-label="Sammelbestellung">
       <div class="shop-hero-main">
-        <span class="shop-hero-kicker">★ Gemeinsam bestellen</span>
-        <h1 class="shop-hero-title">Einer bestellt.<br><span>Der ganze Verein</span> spart.</h1>
-        <p class="shop-hero-copy">Bei einer <strong>Sammelbestellung</strong> bündeln wir alle Bestellungen bei einem Lieferanten bis zur Deadline — ein Versand, weniger Kosten, mehr für den Verein.</p>
+        <span class="shop-hero-kicker" data-i18n="hero.kicker">★ Gemeinsam bestellen</span>
+        <h1 class="shop-hero-title"><span data-i18n="hero.titleLine1">Einer bestellt.</span><br><span data-i18n="hero.titleLine2">Der ganze Verein</span> <span data-i18n="hero.titleLine3">spart.</span></h1>
+        <p class="shop-hero-copy" data-i18n-html="hero.copy">Bei einer <strong>Sammelbestellung</strong> bündeln wir alle Bestellungen bei einem Lieferanten bis zur Deadline — ein Versand, weniger Kosten, mehr für den Verein.</p>
         <div class="shop-hero-actions">
-          <button id="hero-go-btn" class="hero-btn-primary" type="button">Zur aktiven Sammelbestellung →</button>
-          <button id="hero-howto-btn" class="hero-btn-outline" type="button" aria-expanded="false" aria-controls="hero-howto">So funktioniert's</button>
+          <button id="hero-go-btn" class="hero-btn-primary" type="button" data-i18n="hero.ctaActive">Zur aktiven Sammelbestellung →</button>
+          <button id="hero-howto-btn" class="hero-btn-outline" type="button" aria-expanded="false" aria-controls="hero-howto" data-i18n="hero.howtoToggle">So funktioniert's</button>
         </div>
       </div>
       <div class="shop-hero-side">
-        <p class="shop-hero-side-label">Läuft gerade</p>
+        <p class="shop-hero-side-label" data-i18n="hero.runningNow">Läuft gerade</p>
         <div id="hero-featured"></div>
       </div>
       <div id="hero-howto" class="shop-hero-howto hidden">
         <div class="howto-step">
           <div class="howto-num" aria-hidden="true">1</div>
           <div>
-            <p class="howto-title">Aktion beitreten</p>
-            <p class="howto-text">Wähle eine laufende Sammelbestellung deines Lieferanten aus.</p>
+            <p class="howto-title" data-i18n="hero.step1Title">Aktion beitreten</p>
+            <p class="howto-text" data-i18n="hero.step1Text">Wähle eine laufende Sammelbestellung deines Lieferanten aus.</p>
           </div>
         </div>
         <div class="howto-step">
           <div class="howto-num" aria-hidden="true">2</div>
           <div>
-            <p class="howto-title">Artikel wählen</p>
-            <p class="howto-text">Leg deine Artikel bis zur Deadline in den gemeinsamen Warenkorb.</p>
+            <p class="howto-title" data-i18n="hero.step2Title">Artikel wählen</p>
+            <p class="howto-text" data-i18n="hero.step2Text">Leg deine Artikel bis zur Deadline in den gemeinsamen Warenkorb.</p>
           </div>
         </div>
         <div class="howto-step">
           <div class="howto-num" aria-hidden="true">3</div>
           <div>
-            <p class="howto-title">Gebündelt bestellen</p>
-            <p class="howto-text">Nach der Deadline geht alles in einem Sammelversand raus.</p>
+            <p class="howto-title" data-i18n="hero.step3Title">Gebündelt bestellen</p>
+            <p class="howto-text" data-i18n="hero.step3Text">Nach der Deadline geht alles in einem Sammelversand raus.</p>
           </div>
         </div>
       </div>
@@ -434,7 +491,7 @@
     <!-- NEW LOOK — Sticky-CTA (nur mobil, wenn eine Aktion läuft) -->
     <button id="go-sticky-cta" class="go-sticky-cta hidden" type="button">
       <span class="go-sticky-dot" aria-hidden="true"></span>
-      <span id="go-sticky-label">Zur Sammelbestellung →</span>
+      <span id="go-sticky-label" data-i18n="sticky.cta">Zur Sammelbestellung →</span>
     </button>
 
     <!-- ======================================================
@@ -445,23 +502,23 @@
       <!-- Desktop Sidebar -->
       <aside class="shop-sidebar" id="shop-sidebar-desktop">
         <div class="sidebar-block">
-          <p class="sidebar-label">Shop</p>
-          <h2>Filter</h2>
+          <p class="sidebar-label" data-i18n="sidebar.shop">Shop</p>
+          <h2 data-i18n="sidebar.filter">Filter</h2>
         </div>
         <div class="sidebar-block" id="filter-block-category">
-          <p class="sidebar-label">Kategorie</p>
+          <p class="sidebar-label" data-i18n="sidebar.category">Kategorie</p>
           <div class="filter-chip-list" id="filter-chips-category"></div>
         </div>
         <div class="sidebar-block" id="filter-block-supplier">
-          <p class="sidebar-label">Lieferant</p>
+          <p class="sidebar-label" data-i18n="sidebar.supplier">Lieferant</p>
           <div class="filter-chip-list" id="filter-chips-supplier"></div>
         </div>
         <div class="sidebar-block" id="filter-block-brand">
-          <p class="sidebar-label">Marke</p>
+          <p class="sidebar-label" data-i18n="sidebar.brand">Marke</p>
           <div class="filter-chip-list" id="filter-chips-brand"></div>
         </div>
         <div class="sidebar-block">
-          <button id="filter-reset-btn-desktop" class="btn-outline small-btn filter-reset-btn" type="button">Filter zurücksetzen</button>
+          <button id="filter-reset-btn-desktop" class="btn-outline small-btn filter-reset-btn" type="button" data-i18n="sidebar.reset">Filter zurücksetzen</button>
         </div>
       </aside>
 
@@ -469,13 +526,14 @@
       <section class="shop-content" aria-labelledby="products-heading">
         <div class="shop-topbar">
           <div>
-            <p class="sidebar-label">Sortiment</p>
-            <h2 id="products-heading">Verfügbare Artikel</h2>
+            <p class="sidebar-label" data-i18n="topbar.assortment">Sortiment</p>
+            <h2 id="products-heading" data-i18n="topbar.availableItems">Verfügbare Artikel</h2>
           </div>
           <button
             id="filter-toggle-btn"
             class="filter-toggle-btn btn-outline"
             type="button"
+            data-i18n-attr="aria-label:filter.openAria"
             aria-label="Filter öffnen"
             aria-expanded="false"
           >
@@ -485,7 +543,7 @@
               <line x1="8" y1="12" x2="16" y2="12"/>
               <line x1="11" y1="18" x2="13" y2="18"/>
             </svg>
-            Filter
+            <span data-i18n="filter.label">Filter</span>
             <span id="filter-active-count" class="filter-active-count hidden">0</span>
           </button>
         </div>
@@ -500,11 +558,11 @@
 
           <aside class="shop-cart-sidebar" id="cart-desktop-slot">
             <section class="card cart-card hidden" id="cart-section">
-              <div class="section-head"><h2>Warenkorb</h2></div>
+              <div class="section-head"><h2 data-i18n="cart.title">Warenkorb</h2></div>
               <div id="cart-list" class="cart-list"></div>
               <div class="cart-footer">
                 <p id="cart-total" class="price"></p>
-                <button id="open-checkout-btn" class="btn-checkout-open" type="button">Zur Bestellübersicht →</button>
+                <button id="open-checkout-btn" class="btn-checkout-open" type="button" data-i18n="cart.checkout">Zur Bestellübersicht →</button>
               </div>
             </section>
           </aside>
@@ -520,16 +578,16 @@
 
         <!-- Checkout Header -->
         <div class="checkout-header app-panel-header">
-          <button id="checkout-back-btn" type="button" class="checkout-back-btn app-panel-back-btn" aria-label="Zurück zum Shop">
+          <button id="checkout-back-btn" type="button" class="checkout-back-btn app-panel-back-btn" data-i18n-attr="aria-label:checkout.back" aria-label="Zurück zum Shop">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                  stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
               <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
             </svg>
-            Zurück zum Shop
+            <span data-i18n="checkout.back">Zurück zum Shop</span>
           </button>
           <div class="checkout-header-title">
-            <p class="sidebar-label">Schritt 2 von 2</p>
-            <h2>Bestellübersicht</h2>
+            <p class="sidebar-label" data-i18n="checkout.step">Schritt 2 von 2</p>
+            <h2 data-i18n="checkout.title">Bestellübersicht</h2>
           </div>
         </div>
 
@@ -538,36 +596,36 @@
           <div class="checkout-items-wrap">
             <!-- Bereich 1: Warenkorb (confirmed = false) - nur im GO-Modus genutzt -->
             <section id="go-cart-section" class="go-checkout-area hidden" aria-label="Warenkorb">
-              <h3 class="go-checkout-area-title">Warenkorb</h3>
+              <h3 class="go-checkout-area-title" data-i18n="checkout.cartArea">Warenkorb</h3>
               <div id="go-cart-list" class="checkout-list"></div>
-              <p id="go-cart-empty" class="go-checkout-empty hidden">Dein Warenkorb ist leer.</p>
+              <p id="go-cart-empty" class="go-checkout-empty hidden" data-i18n="checkout.cartEmpty">Dein Warenkorb ist leer.</p>
             </section>
 
             <!-- Bereich 2: Meine Bestellung (confirmed = true) - nur im GO-Modus genutzt -->
             <section id="go-order-section" class="go-checkout-area hidden" aria-label="Meine Bestellung">
-              <h3 class="go-checkout-area-title">Meine Bestellung</h3>
+              <h3 class="go-checkout-area-title" data-i18n="checkout.orderArea">Meine Bestellung</h3>
               <div id="go-order-list" class="checkout-list"></div>
-              <p id="go-order-empty" class="go-checkout-empty hidden">Du hast noch keine Artikel zur Bestellung hinzugefügt.</p>
+              <p id="go-order-empty" class="go-checkout-empty hidden" data-i18n="checkout.orderEmpty">Du hast noch keine Artikel zur Bestellung hinzugefügt.</p>
             </section>
 
             <!-- Normaler Modus (cart_items) - unverändert -->
             <div id="checkout-list" class="checkout-list"></div>
-            <p id="checkout-empty" class="products-empty hidden">Dein Warenkorb ist leer.</p>
+            <p id="checkout-empty" class="products-empty hidden" data-i18n="checkout.cartEmpty">Dein Warenkorb ist leer.</p>
           </div>
 
           <!-- Checkout Zusammenfassung -->
           <aside class="checkout-summary">
             <div class="checkout-summary-card">
-              <h3 class="checkout-summary-title">Zusammenfassung</h3>
+              <h3 class="checkout-summary-title" data-i18n="checkout.summary">Zusammenfassung</h3>
               <div class="checkout-summary-row">
-                <span>Artikel</span>
+                <span data-i18n="checkout.items">Artikel</span>
                 <span id="checkout-item-count">0</span>
               </div>
               <div class="checkout-summary-total">
-                <span>Gesamt</span>
+                <span data-i18n="checkout.total">Gesamt</span>
                 <span id="checkout-total">0,00 €</span>
               </div>
-              <button id="submit-order-btn" type="button" class="submit-btn checkout-submit-btn">Bestellung absenden</button>
+              <button id="submit-order-btn" type="button" class="submit-btn checkout-submit-btn" data-i18n="checkout.submit">Bestellung absenden</button>
               <p id="order-message" class="order-message"></p>
             </div>
           </aside>
@@ -582,6 +640,7 @@
       id="filter-fab"
       class="filter-fab"
       type="button"
+      data-i18n-attr="aria-label:filter.openAria"
       aria-label="Filter öffnen"
       aria-hidden="true"
     >
@@ -591,7 +650,7 @@
         <line x1="8" y1="12" x2="16" y2="12"/>
         <line x1="11" y1="18" x2="13" y2="18"/>
       </svg>
-      Filter
+      <span data-i18n="filter.label">Filter</span>
       <span id="filter-fab-count" class="filter-fab-count hidden">0</span>
     </button>
 
@@ -605,10 +664,10 @@
       <div class="cart-drawer-header">
         <div class="cart-drawer-header-row">
           <div class="cart-drawer-title-row">
-            <h2 class="cart-drawer-title">Warenkorb</h2>
+            <h2 class="cart-drawer-title" data-i18n="cart.title">Warenkorb</h2>
             <span id="cart-drawer-item-count" class="cart-drawer-count">0</span>
           </div>
-          <button id="cart-drawer-close" class="cart-drawer-close" type="button" aria-label="Warenkorb schließen">
+          <button id="cart-drawer-close" class="cart-drawer-close" type="button" data-i18n-attr="aria-label:cart.closeAria" aria-label="Warenkorb schließen">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
@@ -618,10 +677,10 @@
       <div class="cart-drawer-body"></div>
       <div class="cart-drawer-footer">
         <div class="cart-drawer-footer-total">
-          <span class="cart-drawer-total-label">Gesamt</span>
+          <span class="cart-drawer-total-label" data-i18n="cart.totalLabel">Gesamt</span>
           <p id="cart-drawer-total" class="cart-drawer-total-text"></p>
         </div>
-        <button id="cart-drawer-submit" type="button" class="cart-drawer-submit-btn">Zur Bestellübersicht →</button>
+        <button id="cart-drawer-submit" type="button" class="cart-drawer-submit-btn" data-i18n="cart.checkout">Zur Bestellübersicht →</button>
         <p id="cart-drawer-message" class="cart-drawer-message"></p>
       </div>
     </div>
@@ -631,8 +690,8 @@
     ====================================================== -->
     <div id="filter-drawer" class="filter-drawer" aria-hidden="true" role="dialog" aria-label="Filter">
       <div class="filter-drawer-header">
-        <h2 class="filter-drawer-title">Filter</h2>
-        <button id="filter-drawer-close" class="cart-drawer-close" type="button" aria-label="Filter schließen">
+        <h2 class="filter-drawer-title" data-i18n="filter.label">Filter</h2>
+        <button id="filter-drawer-close" class="cart-drawer-close" type="button" data-i18n-attr="aria-label:filter.closeAria" aria-label="Filter schließen">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
@@ -640,21 +699,21 @@
       </div>
       <div class="filter-drawer-body">
         <div class="filter-drawer-section">
-          <p class="sidebar-label">Kategorie</p>
+          <p class="sidebar-label" data-i18n="sidebar.category">Kategorie</p>
           <div class="filter-chip-list" id="filter-chips-category-mobile"></div>
         </div>
         <div class="filter-drawer-section" id="filter-block-supplier-mobile">
-          <p class="sidebar-label">Lieferant</p>
+          <p class="sidebar-label" data-i18n="sidebar.supplier">Lieferant</p>
           <div class="filter-chip-list" id="filter-chips-supplier-mobile"></div>
         </div>
         <div class="filter-drawer-section" id="filter-block-brand-mobile">
-          <p class="sidebar-label">Marke</p>
+          <p class="sidebar-label" data-i18n="sidebar.brand">Marke</p>
           <div class="filter-chip-list" id="filter-chips-brand-mobile"></div>
         </div>
       </div>
       <div class="filter-drawer-footer">
-        <button id="filter-reset-btn-mobile" class="filter-reset-btn btn-outline" type="button">Filter zurücksetzen</button>
-        <button id="filter-apply-btn" class="filter-apply-btn" type="button">Anwenden</button>
+        <button id="filter-reset-btn-mobile" class="filter-reset-btn btn-outline" type="button" data-i18n="sidebar.reset">Filter zurücksetzen</button>
+        <button id="filter-apply-btn" class="filter-apply-btn" type="button" data-i18n="filter.apply">Anwenden</button>
       </div>
     </div>
 
@@ -670,16 +729,16 @@
         <div class="go-panel-header app-panel-header">
           <button class="go-panel-back-btn app-panel-back-btn" id="account-back-btn" type="button">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-            Zurück
+            <span data-i18n="go.back">Zurück</span>
           </button>
-          <h2 class="go-panel-header-title">Kontodaten</h2>
-          <button class="go-panel-close-btn" id="account-close-btn" type="button" aria-label="Schließen">
+          <h2 class="go-panel-header-title" data-i18n="account.title">Kontodaten</h2>
+          <button class="go-panel-close-btn" id="account-close-btn" type="button" data-i18n-attr="aria-label:go.closeAria" aria-label="Schließen">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
 
         <div class="go-panel-body">
-          <p class="account-intro">Verwalte hier deine persönlichen Daten und deine Lieferadresse.</p>
+          <p class="account-intro" data-i18n="account.intro">Verwalte hier deine persönlichen Daten und deine Lieferadresse.</p>
 
           <div class="account-grid">
 
@@ -694,7 +753,7 @@
                 <span class="account-type-badge hidden" id="account-type-badge"></span>
               </div>
               <dl class="account-facts" id="account-facts"></dl>
-              <p class="account-note">
+              <p class="account-note" data-i18n="account.note">
                 Name und E-Mail wurden bei der Registrierung festgelegt. Zum Ändern wende dich an den Vorstand.
               </p>
             </section>
@@ -702,38 +761,38 @@
             <!-- Lieferadresse (editierbar) -->
             <form id="address-form" class="account-card" novalidate>
               <div class="account-section-head">
-                <h3 class="account-section-title">Lieferadresse</h3>
-                <p class="account-section-sub">Wohin deine Bestellungen geliefert werden.</p>
+                <h3 class="account-section-title" data-i18n="account.deliveryAddress">Lieferadresse</h3>
+                <p class="account-section-sub" data-i18n="account.deliverySub">Wohin deine Bestellungen geliefert werden.</p>
               </div>
 
               <div class="account-form">
                 <div class="account-field account-field--wide">
-                  <label class="form-label" for="address-street">Straße</label>
+                  <label class="form-label" for="address-street" data-i18n="reg.street">Straße</label>
                   <input id="address-street" class="account-input" type="text"
-                         placeholder="Musterstraße" autocomplete="street-address" required />
+                         placeholder="Musterstraße" data-i18n-attr="placeholder:reg.streetPh" autocomplete="street-address" required />
                 </div>
                 <div class="account-field">
-                  <label class="form-label" for="address-house">Hausnr.</label>
+                  <label class="form-label" for="address-house" data-i18n="reg.house">Hausnr.</label>
                   <input id="address-house" class="account-input" type="text"
-                         placeholder="12" autocomplete="off" required />
+                         placeholder="12" data-i18n-attr="placeholder:reg.housePh" autocomplete="off" required />
                 </div>
                 <div class="account-field">
-                  <label class="form-label" for="address-postal">PLZ</label>
+                  <label class="form-label" for="address-postal" data-i18n="reg.postal">PLZ</label>
                   <input id="address-postal" class="account-input" type="text"
-                         placeholder="12345" autocomplete="postal-code" maxlength="5" inputmode="numeric" required />
+                         placeholder="12345" data-i18n-attr="placeholder:reg.postalPh" autocomplete="postal-code" maxlength="5" inputmode="numeric" required />
                 </div>
                 <div class="account-field account-field--wide">
-                  <label class="form-label" for="address-city">Ort</label>
+                  <label class="form-label" for="address-city" data-i18n="reg.city">Ort</label>
                   <input id="address-city" class="account-input" type="text"
-                         placeholder="Musterstadt" autocomplete="address-level2" required />
+                         placeholder="Musterstadt" data-i18n-attr="placeholder:reg.cityPh" autocomplete="address-level2" required />
                 </div>
               </div>
 
               <p id="address-message" class="address-message" aria-live="polite"></p>
 
               <div class="account-form-actions">
-                <button type="button" class="btn-outline" id="account-cancel-btn">Verwerfen</button>
-                <button type="submit" id="address-submit-btn" class="btn-primary">Speichern</button>
+                <button type="button" class="btn-outline" id="account-cancel-btn" data-i18n="account.discard">Verwerfen</button>
+                <button type="submit" id="address-submit-btn" class="btn-primary" data-i18n="account.save">Speichern</button>
               </div>
             </form>
 

@@ -20,22 +20,23 @@
   // ----------------------------------------------------------
   function remaining(deadline) {
     const ms = new Date(deadline).getTime() - Date.now();
-    if (!isFinite(ms) || ms <= 0) return { text: "beendet", urgent: true, over: true };
+    if (!isFinite(ms) || ms <= 0) return { text: t("cd.ended"), urgent: true, over: true };
     const s = Math.floor(ms / 1000);
     const d = Math.floor(s / 86400);
     const h = Math.floor((s % 86400) / 3600);
     const m = Math.floor((s % 3600) / 60);
+    const uD = t("cd.days"), uH = t("cd.hours"), uM = t("cd.minutes"), uS = t("cd.seconds");
     let text;
-    if (d > 0)      text = d + " Tg " + h + " Std";
-    else if (h > 0) text = h + " Std " + m + " Min";
-    else            text = m + " Min " + String(s % 60).padStart(2, "0") + " Sek";
+    if (d > 0)      text = d + " " + uD + " " + h + " " + uH;
+    else if (h > 0) text = h + " " + uH + " " + m + " " + uM;
+    else            text = m + " " + uM + " " + String(s % 60).padStart(2, "0") + " " + uS;
     return { text, urgent: ms < 24 * 3600 * 1000, over: false };
   }
 
   function tick() {
     document.querySelectorAll("[data-go-countdown]").forEach((el) => {
       const r = remaining(el.getAttribute("data-go-countdown"));
-      el.textContent = (el.hasAttribute("data-countdown-bare") || r.over) ? r.text : "noch " + r.text;
+      el.textContent = (el.hasAttribute("data-countdown-bare") || r.over) ? r.text : t("cd.remainingPrefix", { time: r.text });
       el.classList.toggle("go-countdown--urgent", r.urgent);
     });
     updateStickyCta();
@@ -45,42 +46,39 @@
   // Vorgestellte Aktion = nächste Deadline (Liste ist danach sortiert)
   // ----------------------------------------------------------
   function featured() { return goOrders.length ? goOrders[0] : null; }
-  function supplierName(o) { return (o && (o.suppliers?.name || o.title)) || "Sammelbestellung"; }
+  function supplierName(o) { return (o && (o.suppliers?.name || o.title)) || t("go.defaultName"); }
+
+  // Eine kompakte Status-Kachel für die Hero-Spalte: nur Name + Restzeit,
+  // kein Beitreten-Button. Die ganze Kachel öffnet die große Übersicht,
+  // wo das eigentliche Mitmachen passiert (renderPanelContent / .go-item).
+  function renderFeaturedCard(o) {
+    const name = supplierName(o);
+    return (
+      '<button type="button" class="hero-go-chip" data-hero-open="' + escapeHtml(String(o.id)) + '">' +
+        '<span class="hero-go-chip-name" title="' + escapeHtml(name) + '">' + escapeHtml(name) + "</span>" +
+        '<span class="hero-go-chip-time go-countdown" data-go-countdown="' + escapeHtml(String(o.deadline)) + '" data-countdown-bare></span>' +
+      "</button>"
+    );
+  }
 
   function renderFeatured() {
     const wrap = $("hero-featured");
     if (!wrap) return;
-    const f = featured();
 
-    if (!f) {
+    // Kein Eintrag → Erstellen-Karte
+    if (!goOrders.length) {
       wrap.innerHTML =
         '<div class="hero-featured-card hero-featured-card--empty">' +
-        '<p class="hero-featured-sub">Gerade läuft keine Sammelbestellung.<br>Eröffne die nächste Aktion für deinen Lieferanten.</p>' +
-        '<button type="button" class="hero-featured-join" data-hero-create>+ Sammelbestellung eröffnen</button>' +
+        '<p class="hero-featured-sub">' + t("hero.emptyText") + '</p>' +
+        '<button type="button" class="hero-featured-join" data-hero-create>' + escapeHtml(t("hero.createBtn")) + '</button>' +
         "</div>";
       return;
     }
 
-    const name = supplierName(f);
-    const initials = name.trim().slice(0, 2).toUpperCase();
-    const dateStr = new Date(f.deadline).toLocaleDateString("de-DE", {
-      day: "2-digit", month: "2-digit", year: "numeric",
-    });
-
+    // Alle aktuell laufenden Aktionen als Karten (nach Deadline sortiert)
     wrap.innerHTML =
-      '<div class="hero-featured-card">' +
-        '<div class="hero-featured-head">' +
-          '<div class="hero-featured-logo" aria-hidden="true">' + escapeHtml(initials) + "</div>" +
-          "<div>" +
-            '<p class="hero-featured-name">' + escapeHtml(name) + "</p>" +
-            '<p class="hero-featured-sub">Endet am ' + escapeHtml(dateStr) + "</p>" +
-          "</div>" +
-        "</div>" +
-        '<div class="hero-featured-count">' +
-          "<span>Endet in</span>" +
-          '<span class="hero-featured-time" data-go-countdown="' + escapeHtml(String(f.deadline)) + '" data-countdown-bare></span>' +
-        "</div>" +
-        '<button type="button" class="hero-featured-join" data-hero-join="' + escapeHtml(String(f.id)) + '">Mitmachen</button>' +
+      '<div class="hero-featured-list">' +
+        goOrders.map(renderFeaturedCard).join("") +
       "</div>";
 
     tick();
@@ -112,12 +110,6 @@
       navBadge.textContent = String(n);
       navBadge.classList.toggle("hidden", n === 0);
     }
-    const ddBadge = $("my-go-badge");
-    if (ddBadge) {
-      ddBadge.textContent = String(n);
-      ddBadge.classList.toggle("hidden", n === 0);
-    }
-
     updateStickyCta();
   }
 
@@ -180,7 +172,7 @@
     if (show) {
       const r = remaining(f.deadline);
       const label = $("go-sticky-label");
-      if (label) label.textContent = "Sammelbestellung \u201e" + supplierName(f) + "\u201c \u00b7 noch " + r.text + " \u2192";
+      if (label) label.textContent = t("sticky.label", { name: supplierName(f), time: r.text });
     }
   }
 
@@ -206,6 +198,13 @@
     syncUI();
   });
   document.addEventListener("go:mode-changed", syncUI);
+
+  // Sprachwechsel: Hero-Karte, Countdown-Ticker und Sticky-CTA neu aufbauen
+  document.addEventListener("i18n:changed", () => {
+    renderFeatured();
+    syncUI();
+    tick();
+  });
 
   // ----------------------------------------------------------
   // Init
@@ -234,12 +233,6 @@
     $("nav-shop-btn")?.addEventListener("click", goToShop);
     $("brand-home")?.addEventListener("click", (e) => { e.preventDefault(); goToShop(); });
 
-    // Dropdown: Meine Sammelbestellungen → Panel
-    $("my-group-orders-btn")?.addEventListener("click", () => {
-      closeUserDropdown();
-      if (typeof openGroupPanel === "function") openGroupPanel();
-    });
-
     // Hero
     $("hero-howto-btn")?.addEventListener("click", () => {
       const el = $("hero-howto");
@@ -247,18 +240,17 @@
       const nowHidden = el.classList.toggle("hidden");
       $("hero-howto-btn")?.setAttribute("aria-expanded", String(!nowHidden));
     });
+    // Öffnet die Übersicht (gleiches Panel wie Header-Nav „Sammelbestellungen")
     $("hero-go-btn")?.addEventListener("click", () => {
-      const f = featured();
-      if (f && typeof joinGroupOrder === "function") joinGroupOrder(String(f.id));
-      else if (typeof openGroupPanel === "function") openGroupPanel();
+      if (typeof openGroupPanel === "function") openGroupPanel();
     });
     $("hero-featured")?.addEventListener("click", (e) => {
-      const join = e.target.closest("[data-hero-join]");
-      if (join && typeof joinGroupOrder === "function") {
-        joinGroupOrder(join.getAttribute("data-hero-join"));
-        return;
+      // Kompakte Kachel oder leere Erstellen-Karte → beide öffnen die Übersicht.
+      // Beigetreten wird erst dort (großes Panel mit Mitmach-Button).
+      if (e.target.closest("[data-hero-open], [data-hero-create]") &&
+          typeof openGroupPanel === "function") {
+        openGroupPanel();
       }
-      if (e.target.closest("[data-hero-create]") && typeof openGroupPanel === "function") openGroupPanel();
     });
 
     // Sticky-CTA
