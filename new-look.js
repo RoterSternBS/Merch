@@ -48,28 +48,16 @@
   function featured() { return goOrders.length ? goOrders[0] : null; }
   function supplierName(o) { return (o && (o.suppliers?.name || o.title)) || t("go.defaultName"); }
 
-  function renderFeatured() {
-    const wrap = $("hero-featured");
-    if (!wrap) return;
-    const f = featured();
-
-    if (!f) {
-      wrap.innerHTML =
-        '<div class="hero-featured-card hero-featured-card--empty">' +
-        '<p class="hero-featured-sub">' + t("hero.emptyText") + '</p>' +
-        '<button type="button" class="hero-featured-join" data-hero-create>' + escapeHtml(t("hero.createBtn")) + '</button>' +
-        "</div>";
-      return;
-    }
-
-    const name = supplierName(f);
+  // Eine einzelne Aktions-Karte für die Hero-Spalte
+  function renderFeaturedCard(o) {
+    const name = supplierName(o);
     const initials = name.trim().slice(0, 2).toUpperCase();
     const loc = (typeof i18nLocale === "function") ? i18nLocale() : "de-DE";
-    const dateStr = new Date(f.deadline).toLocaleDateString(loc, {
+    const dateStr = new Date(o.deadline).toLocaleDateString(loc, {
       day: "2-digit", month: "2-digit", year: "numeric",
     });
 
-    wrap.innerHTML =
+    return (
       '<div class="hero-featured-card">' +
         '<div class="hero-featured-head">' +
           '<div class="hero-featured-logo" aria-hidden="true">' + escapeHtml(initials) + "</div>" +
@@ -80,9 +68,31 @@
         "</div>" +
         '<div class="hero-featured-count">' +
           "<span>" + escapeHtml(t("hero.endsIn")) + "</span>" +
-          '<span class="hero-featured-time" data-go-countdown="' + escapeHtml(String(f.deadline)) + '" data-countdown-bare></span>' +
+          '<span class="hero-featured-time" data-go-countdown="' + escapeHtml(String(o.deadline)) + '" data-countdown-bare></span>' +
         "</div>" +
-        '<button type="button" class="hero-featured-join" data-hero-join="' + escapeHtml(String(f.id)) + '">' + escapeHtml(t("hero.join")) + '</button>' +
+        '<button type="button" class="hero-featured-join" data-hero-join="' + escapeHtml(String(o.id)) + '">' + escapeHtml(t("hero.join")) + '</button>' +
+      "</div>"
+    );
+  }
+
+  function renderFeatured() {
+    const wrap = $("hero-featured");
+    if (!wrap) return;
+
+    // Kein Eintrag → Erstellen-Karte
+    if (!goOrders.length) {
+      wrap.innerHTML =
+        '<div class="hero-featured-card hero-featured-card--empty">' +
+        '<p class="hero-featured-sub">' + t("hero.emptyText") + '</p>' +
+        '<button type="button" class="hero-featured-join" data-hero-create>' + escapeHtml(t("hero.createBtn")) + '</button>' +
+        "</div>";
+      return;
+    }
+
+    // Alle aktuell laufenden Aktionen als Karten (nach Deadline sortiert)
+    wrap.innerHTML =
+      '<div class="hero-featured-list">' +
+        goOrders.map(renderFeaturedCard).join("") +
       "</div>";
 
     tick();
@@ -256,10 +266,9 @@
       const nowHidden = el.classList.toggle("hidden");
       $("hero-howto-btn")?.setAttribute("aria-expanded", String(!nowHidden));
     });
+    // Öffnet die Übersicht (gleiches Panel wie Header-Nav „Sammelbestellungen")
     $("hero-go-btn")?.addEventListener("click", () => {
-      const f = featured();
-      if (f && typeof joinGroupOrder === "function") joinGroupOrder(String(f.id));
-      else if (typeof openGroupPanel === "function") openGroupPanel();
+      if (typeof openGroupPanel === "function") openGroupPanel();
     });
     $("hero-featured")?.addEventListener("click", (e) => {
       const join = e.target.closest("[data-hero-join]");

@@ -370,6 +370,9 @@ function renderPanelContent() {
   const orders = activeGroupOrders;
   let html = '';
 
+  // Prominenter Einstieg zum Erstellen — scrollt zum Formular unten
+  html += `<button type="button" class="go-btn-primary go-new-cta" id="go-new-cta">${escapeHtml(t('go.createBtn'))}</button>`;
+
   if (orders.length > 0) {
     html += `<p class="go-section-title">${escapeHtml(t('go.activeOrders'))}</p><div class="go-list">`;
     html += orders.map(o => `
@@ -437,6 +440,15 @@ function renderPanelContent() {
   });
 
   document.getElementById('go-create-submit-btn')?.addEventListener('click', submitGroupOrder);
+
+  // Top-CTA: sanft zum Erstell-Formular scrollen + Lieferantenfeld fokussieren
+  document.getElementById('go-new-cta')?.addEventListener('click', () => {
+    const form = body.querySelector('.go-create-form');
+    if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const sel = document.getElementById('go-supplier-select');
+    if (sel) setTimeout(() => sel.focus(), 350);
+  });
+
   orders.forEach(o => syncJoinState(o.id));
   loadSupplierDropdown();
 }

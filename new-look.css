@@ -466,6 +466,15 @@ html[dir="rtl"] .auth-switchers { right: auto; left: 16px; }
   margin: 0;
 }
 
+/* Liste aller laufenden Aktionen — scrollt, wenn es viele sind */
+.hero-featured-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
 .hero-featured-card {
   background: var(--surface);
   border: 1px solid var(--go-border-strong);
