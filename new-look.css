@@ -466,14 +466,52 @@ html[dir="rtl"] .auth-switchers { right: auto; left: 16px; }
   margin: 0;
 }
 
-/* Liste aller laufenden Aktionen — scrollt, wenn es viele sind */
+/* Kompakte Status-Kacheln: nebeneinander, umbrechend statt gestapelt.
+   In der schmalen Hero-Spalte passen real ~2 pro Reihe. */
 .hero-featured-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: 360px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+  max-height: 220px;
   overflow-y: auto;
 }
+
+.hero-go-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;           /* Grid-Item darf schrumpfen (sonst sprengt langer Name die Spalte) */
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--go-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
+}
+.hero-go-chip:hover  { background: var(--surface-2); border-color: var(--go-border-banner); }
+.hero-go-chip:active { transform: scale(.97); opacity: 1; }
+
+.hero-go-chip-name {
+  min-width: 0;           /* Flex-Kind: erlaubt Ellipsis statt Überlauf */
+  max-width: 100%;        /* klemmt den Namen auf die Kachelbreite (sonst greift ellipsis nicht) */
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-go-chip-time {
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  color: var(--go-accent);
+}
+.hero-go-chip-time.go-countdown--urgent { color: var(--accent-text); }
 
 .hero-featured-card {
   background: var(--surface);
@@ -488,55 +526,8 @@ html[dir="rtl"] .auth-switchers { right: auto; left: 16px; }
 
 .hero-featured-card--empty { align-items: flex-start; }
 
-.hero-featured-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.hero-featured-logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: var(--go-bg-dim);
-  border: 1px solid var(--go-border-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--go-accent);
-  font-weight: 800;
-  font-family: 'Barlow Condensed', 'Inter', sans-serif;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
-
-.hero-featured-name { font-weight: 700; font-size: 1.05rem; margin: 0; color: var(--text); }
+/* Nur noch für die leere „Erstellen"-Karte (hero-featured-card--empty) genutzt. */
 .hero-featured-sub  { font-size: 0.82rem; color: var(--muted); margin: 2px 0 0; line-height: 1.45; }
-
-.hero-featured-count {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--surface-2);
-  border-radius: var(--radius-sm);
-  padding: 11px 14px;
-}
-.hero-featured-count > span:first-child {
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.hero-featured-time {
-  font-family: 'Barlow Condensed', 'Inter', sans-serif;
-  font-weight: 800;
-  font-size: 1.45rem;
-  letter-spacing: 0.02em;
-  color: var(--go-accent);
-}
-.hero-featured-time.go-countdown--urgent { color: var(--accent-text); }
 
 .hero-featured-join {
   background: var(--accent);
