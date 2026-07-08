@@ -110,12 +110,6 @@
       navBadge.textContent = String(n);
       navBadge.classList.toggle("hidden", n === 0);
     }
-    const ddBadge = $("my-go-badge");
-    if (ddBadge) {
-      ddBadge.textContent = String(n);
-      ddBadge.classList.toggle("hidden", n === 0);
-    }
-
     updateStickyCta();
   }
 
@@ -238,12 +232,6 @@
     });
     $("nav-shop-btn")?.addEventListener("click", goToShop);
     $("brand-home")?.addEventListener("click", (e) => { e.preventDefault(); goToShop(); });
-
-    // Dropdown: Meine Sammelbestellungen → Panel
-    $("my-group-orders-btn")?.addEventListener("click", () => {
-      closeUserDropdown();
-      if (typeof openGroupPanel === "function") openGroupPanel();
-    });
 
     // Hero
     $("hero-howto-btn")?.addEventListener("click", () => {
