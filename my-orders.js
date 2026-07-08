@@ -111,11 +111,11 @@
 
     const { data, error } = await db
       .from("orders")
-      .select(`id, status, created_at, group_order_id,
+      .select(`id, status, submitted_at, group_order_id,
                group_orders ( title, suppliers ( name ) ),
                order_items ( id, product_name, quantity, size_label, unit_price_netto )`)
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("submitted_at", { ascending: false });
 
     if (error) {
       body.innerHTML = '<div class="mo-empty">' + escapeHtml(t("mo.loadError", { msg: error.message })) + "</div>";
@@ -136,8 +136,8 @@
       const initials = (supplier || "RS").trim().slice(0, 2).toUpperCase();
       const typeLabel = isGo ? t("mo.groupOrder") : t("mo.singleOrder");
       const loc = (typeof i18nLocale === "function") ? i18nLocale() : "de-DE";
-      const dateStr = o.created_at
-        ? new Date(o.created_at).toLocaleDateString(loc, { day: "2-digit", month: "2-digit", year: "numeric" })
+      const dateStr = o.submitted_at
+        ? new Date(o.submitted_at).toLocaleDateString(loc, { day: "2-digit", month: "2-digit", year: "numeric" })
         : "";
       const statusText = statusLabel(o.status);
       const statusCls = STATUS_DONE.has(o.status) ? " mo-status--done" : "";
