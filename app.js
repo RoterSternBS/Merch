@@ -129,7 +129,7 @@ document.addEventListener("auth:changed", async ({ detail: { session, approvalSt
     updateCartBadge(0);
     allProducts = [];
     activeFilters = { category: new Set(), supplier: new Set(), brand: new Set() };
-    buildFilterChips([]);     // setzt alle sidebar-blocks und filter-sections auf hidden
+    buildFilterChips();       // allProducts ist [] → alle sidebar-blocks/filter-sections hidden
     updateFilterUI();         // setzt active-filter-bar auf hidden, Badge auf 0
     // Optional, falls Topbar/Sidebar noch eigene hidden-Klasse brauchen:
     document.getElementById("shop-sidebar-desktop")?.classList.add("hidden");
@@ -315,22 +315,26 @@ function currentChipSource() {
     : allProducts;
 }
 
-function buildFilterChips(products) {
-  const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
-  const suppliers  = [...new Set(products.map(p => p.suppliers?.name).filter(Boolean))].sort();
-  const brands     = [...new Set(products.map(p => p.brands?.name).filter(Boolean))].sort();
-
+// Die erlaubten Filteroptionen werden IMMER aus currentChipSource() abgeleitet.
+// Im GO-Modus liefert das nur Produkte des aktuellen Lieferanten, im normalen
+// Shop alle Produkte. Dadurch sind angezeigte Chips und aktive Filter-Quelle
+// garantiert dieselbe Menge — egal von welchem Aufrufer buildFilterChips kommt.
+// Kein Aufrufer darf mehr eine eigene (globale) Produktliste "einschleusen".
+function buildFilterChips() {
   const sourceProducts = currentChipSource();
+  const categories = [...new Set(sourceProducts.map(p => p.category).filter(Boolean))].sort();
+  const suppliers  = [...new Set(sourceProducts.map(p => p.suppliers?.name).filter(Boolean))].sort();
+  const brands     = [...new Set(sourceProducts.map(p => p.brands?.name).filter(Boolean))].sort();
 
-  renderChips("filter-chips-category",        categories, "category", sourceProducts);
-  renderChips("filter-chips-supplier",         suppliers,  "supplier",  sourceProducts);
-  renderChips("filter-chips-brand",            brands,     "brand",     sourceProducts);
-  renderChips("filter-chips-category-mobile",  categories, "category", sourceProducts);
-  renderChips("filter-chips-supplier-mobile",  suppliers,  "supplier",  sourceProducts);
-  renderChips("filter-chips-brand-mobile",     brands,     "brand",     sourceProducts);
+  renderChips("filter-chips-category",        categories, "category");
+  renderChips("filter-chips-supplier",         suppliers,  "supplier");
+  renderChips("filter-chips-brand",            brands,     "brand");
+  renderChips("filter-chips-category-mobile",  categories, "category");
+  renderChips("filter-chips-supplier-mobile",  suppliers,  "supplier");
+  renderChips("filter-chips-brand-mobile",     brands,     "brand");
 }
 
-function renderChips(containerId, values, filterKey, sourceProducts) {
+function renderChips(containerId, values, filterKey) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -360,7 +364,7 @@ function renderChips(containerId, values, filterKey, sourceProducts) {
       } else {
         activeFilters[key].add(val);
       }
-      buildFilterChips(sourceProducts);
+      buildFilterChips();
       applyFilters();
     });
   });
@@ -409,7 +413,7 @@ function updateFilterUI() {
     tag.innerHTML = `${escapeHtml(label)}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
     tag.addEventListener("click", () => {
       activeFilters[key].delete(label);
-      buildFilterChips(currentChipSource());
+      buildFilterChips();
       applyFilters();
     });
     activeFilterBar.appendChild(tag);
@@ -421,8 +425,11 @@ function updateFilterUI() {
 }
 
 function resetFilters() {
+  // Nur aktive Filterwerte zurücksetzen. Die erlaubten Chips ergeben sich
+  // weiterhin aus currentChipSource() — im GO-Modus also nur die Kategorien
+  // des aktuellen Lieferanten, NICHT die globalen Shop-Kategorien.
   activeFilters = { category: new Set(), supplier: new Set(), brand: new Set() };
-  buildFilterChips(allProducts);
+  buildFilterChips();
   applyFilters();
 }
 
@@ -793,7 +800,7 @@ async function loadProducts() {
   }
 
   allProducts = data;
-  buildFilterChips(allProducts);
+  buildFilterChips();
   renderProducts(allProducts);
 }
 

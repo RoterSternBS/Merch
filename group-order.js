@@ -167,8 +167,10 @@ async function deactivateGoMode() {
   if (triggerBar) triggerBar.style.display = '';
 
   if (typeof allProducts !== 'undefined' && allProducts.length > 0) {
+    // __goSupplierFilter wurde oben bereits auf null gesetzt →
+    // currentChipSource() liefert wieder alle Produkte (globaler Shop-Kontext).
     activeFilters = { category: new Set(), supplier: new Set(), brand: new Set() };
-    buildFilterChips(allProducts);
+    buildFilterChips();
     renderProducts(allProducts);
     updateFilterUI();
   }
@@ -218,7 +220,9 @@ function filterProductsForGo(supplierId) {
     if (typeof activeFilters !== 'undefined') {
       activeFilters = { category: new Set(), supplier: new Set(), brand: new Set() };
     }
-    buildFilterChips(filtered);
+    // __goSupplierFilter ist gesetzt → currentChipSource() liefert nur die
+    // Produkte dieses Lieferanten → Chips = ausschließlich Lieferanten-Kategorien.
+    buildFilterChips();
     if (typeof updateFilterUI === 'function') updateFilterUI();
   }
 
