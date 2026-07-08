@@ -48,30 +48,16 @@
   function featured() { return goOrders.length ? goOrders[0] : null; }
   function supplierName(o) { return (o && (o.suppliers?.name || o.title)) || t("go.defaultName"); }
 
-  // Eine einzelne Aktions-Karte für die Hero-Spalte
+  // Eine kompakte Status-Kachel für die Hero-Spalte: nur Name + Restzeit,
+  // kein Beitreten-Button. Die ganze Kachel öffnet die große Übersicht,
+  // wo das eigentliche Mitmachen passiert (renderPanelContent / .go-item).
   function renderFeaturedCard(o) {
     const name = supplierName(o);
-    const initials = name.trim().slice(0, 2).toUpperCase();
-    const loc = (typeof i18nLocale === "function") ? i18nLocale() : "de-DE";
-    const dateStr = new Date(o.deadline).toLocaleDateString(loc, {
-      day: "2-digit", month: "2-digit", year: "numeric",
-    });
-
     return (
-      '<div class="hero-featured-card">' +
-        '<div class="hero-featured-head">' +
-          '<div class="hero-featured-logo" aria-hidden="true">' + escapeHtml(initials) + "</div>" +
-          "<div>" +
-            '<p class="hero-featured-name">' + escapeHtml(name) + "</p>" +
-            '<p class="hero-featured-sub">' + escapeHtml(t("hero.endsOn", { date: dateStr })) + "</p>" +
-          "</div>" +
-        "</div>" +
-        '<div class="hero-featured-count">' +
-          "<span>" + escapeHtml(t("hero.endsIn")) + "</span>" +
-          '<span class="hero-featured-time" data-go-countdown="' + escapeHtml(String(o.deadline)) + '" data-countdown-bare></span>' +
-        "</div>" +
-        '<button type="button" class="hero-featured-join" data-hero-join="' + escapeHtml(String(o.id)) + '">' + escapeHtml(t("hero.join")) + '</button>' +
-      "</div>"
+      '<button type="button" class="hero-go-chip" data-hero-open="' + escapeHtml(String(o.id)) + '">' +
+        '<span class="hero-go-chip-name" title="' + escapeHtml(name) + '">' + escapeHtml(name) + "</span>" +
+        '<span class="hero-go-chip-time go-countdown" data-go-countdown="' + escapeHtml(String(o.deadline)) + '" data-countdown-bare></span>' +
+      "</button>"
     );
   }
 
@@ -271,12 +257,12 @@
       if (typeof openGroupPanel === "function") openGroupPanel();
     });
     $("hero-featured")?.addEventListener("click", (e) => {
-      const join = e.target.closest("[data-hero-join]");
-      if (join && typeof joinGroupOrder === "function") {
-        joinGroupOrder(join.getAttribute("data-hero-join"));
-        return;
+      // Kompakte Kachel oder leere Erstellen-Karte → beide öffnen die Übersicht.
+      // Beigetreten wird erst dort (großes Panel mit Mitmach-Button).
+      if (e.target.closest("[data-hero-open], [data-hero-create]") &&
+          typeof openGroupPanel === "function") {
+        openGroupPanel();
       }
-      if (e.target.closest("[data-hero-create]") && typeof openGroupPanel === "function") openGroupPanel();
     });
 
     // Sticky-CTA
