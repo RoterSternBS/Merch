@@ -78,11 +78,15 @@ if (typeof db === "undefined" || typeof getCurrentUser === "undefined") {
 // UI-STATE: Reagiert auf auth:changed von auth.js
 // ============================================================
 
+// VORLÄUFIG DEAKTIVIERT: Admin-Freischaltung nach Registrierung.
+// Auf true setzen, um die Pending-Weiche (Konto wird geprüft) wieder zu aktivieren.
+const REQUIRE_ADMIN_APPROVAL = false;
+
 document.addEventListener("auth:changed", async ({ detail: { session, approvalStatus } }) => {
   const pendingSection = document.getElementById("pending-section");
 
   if (session?.user) {
-    if (approvalStatus !== "approved") {
+    if (REQUIRE_ADMIN_APPROVAL && approvalStatus !== "approved") {
       // Pending-View: eingeloggt, aber noch nicht freigeschalten
       authSection.classList.add("hidden");
       pendingSection?.classList.remove("hidden");

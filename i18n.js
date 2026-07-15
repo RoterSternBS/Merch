@@ -81,7 +81,7 @@
 
       // — Registrierung —
       "reg.title": "Konto erstellen",
-      "reg.sub": "Fülle alle Pflichtfelder aus. Dein Konto wird nach der Registrierung von einem Admin freigeschaltet.",
+      "reg.sub": "Fülle alle Pflichtfelder aus.",
       "reg.accountType": "Kontotyp",
       "reg.person": "Person",
       "reg.org": "Organisation",
@@ -122,7 +122,7 @@
       "reg.fillOrg": "Bitte alle Vereinsdaten ausfüllen.",
       "reg.registering": "Wird registriert…",
       "reg.emailExists": "Diese E-Mail ist bereits registriert.",
-      "reg.success": "Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse. Danach wird dein Konto von einem Admin freigeschaltet.",
+      "reg.success": "Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse. Danach kannst du direkt loslegen.",
       "reg.successShort": "Registrierung erfolgreich. Bitte E-Mail bestätigen.",
 
       // — Pending —
@@ -394,7 +394,7 @@
       "login.logoutError": "Error logging out: {msg}",
 
       "reg.title": "Create account",
-      "reg.sub": "Fill in all required fields. Your account will be activated by an admin after registration.",
+      "reg.sub": "Fill in all required fields.",
       "reg.accountType": "Account type",
       "reg.person": "Person",
       "reg.org": "Organisation",
@@ -435,7 +435,7 @@
       "reg.fillOrg": "Please fill in all club details.",
       "reg.registering": "Registering…",
       "reg.emailExists": "This email is already registered.",
-      "reg.success": "Registration successful! Please confirm your email address. Your account will then be activated by an admin.",
+      "reg.success": "Registration successful! Please confirm your email address. After that you can start right away.",
       "reg.successShort": "Registration successful. Please confirm your email.",
 
       "pending.title": "Account under review",
@@ -694,7 +694,7 @@
       "login.logoutError": "خطأ أثناء تسجيل الخروج: {msg}",
 
       "reg.title": "إنشاء حساب",
-      "reg.sub": "املأ جميع الحقول المطلوبة. سيتم تفعيل حسابك من قِبل المشرف بعد التسجيل.",
+      "reg.sub": "املأ جميع الحقول المطلوبة.",
       "reg.accountType": "نوع الحساب",
       "reg.person": "فرد",
       "reg.org": "مؤسسة",
@@ -735,7 +735,7 @@
       "reg.fillOrg": "يرجى ملء جميع بيانات النادي.",
       "reg.registering": "جارٍ التسجيل…",
       "reg.emailExists": "هذا البريد الإلكتروني مسجّل بالفعل.",
-      "reg.success": "تم التسجيل بنجاح! يرجى تأكيد بريدك الإلكتروني. بعد ذلك سيتم تفعيل حسابك من قِبل المشرف.",
+      "reg.success": "تم التسجيل بنجاح! يرجى تأكيد بريدك الإلكتروني. بعد ذلك يمكنك البدء مباشرة.",
       "reg.successShort": "تم التسجيل بنجاح. يرجى تأكيد بريدك الإلكتروني.",
 
       "pending.title": "الحساب قيد المراجعة",
