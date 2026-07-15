@@ -75,9 +75,12 @@
       return;
     }
 
-    // Alle aktuell laufenden Aktionen als Karten (nach Deadline sortiert)
+    // Alle aktuell laufenden Aktionen als Karten (nach Deadline sortiert).
+    // data-count steuert die Kachelgröße: 1 = ganz groß, 2–4 = zunehmend
+    // kleiner geteilt, ab 5 ("5") das kompakte Umbruch-Layout.
+    const count = Math.min(goOrders.length, 5);
     wrap.innerHTML =
-      '<div class="hero-featured-list">' +
+      '<div class="hero-featured-list" data-count="' + count + '">' +
         goOrders.map(renderFeaturedCard).join("") +
       "</div>";
 
