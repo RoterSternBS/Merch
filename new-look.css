@@ -457,6 +457,18 @@ html[dir="rtl"] .auth-switchers { right: auto; left: 16px; }
   .shop-hero-side { border-left: none; border-top: 1px solid var(--border); }
 }
 
+/* Überschrift der Hero-Spalte — gleiche Farbe/Optik wie der Hero-Titel */
+.shop-hero-side-title {
+  font-family: 'Barlow Condensed', 'Inter', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+  margin: 0;
+  color: var(--accent);
+}
+
 .shop-hero-side-label {
   font-size: 0.7rem;
   letter-spacing: 0.18em;
